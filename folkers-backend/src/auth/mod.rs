@@ -32,7 +32,7 @@ impl UserRepository {
     pub async fn find_by_username(&self, username: &str) -> Option<user::User> {
         if let Ok(opt) = DATABASE.get_user_by_username(username.to_string()).await {
             return opt.map(|record| user::User {
-                id: record.id.map(|id| id.to_string()).unwrap_or("none".to_string()),
+                id: record.id.map(|id| id.id.to_string()).unwrap_or("none".to_string()),
                 username: record.username,
                 password_hash: record.password,
                 role: user::UserRole::from_str(record.role)

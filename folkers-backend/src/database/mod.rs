@@ -91,10 +91,10 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
     /// Get user by SurrealDB Identifier
     pub async fn get_user(
         &self,
-        id: &str
+        id: impl AsRef<str>
     ) -> Option<user::UserRecord> {
         let user_record: Option<user::UserRecord> = self.connection
-            .select((USER, id))
+            .select((USER, id.as_ref()))
             .await
             .ok()?;
 
@@ -118,11 +118,11 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
     /// Update user data by SurrealDB ID
     pub async fn update_user(
         &self,
-        id: &str,
+        id: impl AsRef<str>,
         user: user::CreateUserRecord
     ) -> Result<Option<user::UserRecord>, surrealdb::Error> {
         let updated_user = self.connection
-            .update((USER, id))
+            .update((USER, id.as_ref()))
             .content(user)
             .await;
 
@@ -132,13 +132,14 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
     /// Delete user by SurrealDB ID
     pub async fn delete_user(
         &self,
-        id: &str
+        id: impl AsRef<str>,
     ) -> Result<Option<user::UserRecord>, surrealdb::Error> {
+        let id = id.as_ref();
         let deleted_user = self.connection
             .delete((USER, id))
-            .await;
+            .await?;
 
-        deleted_user
+        Ok(deleted_user)
     }
 
     /// List all users

@@ -41,7 +41,7 @@ pub async fn login_handler(
         .generate_token(&user)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    log::info!("User `{}` authenticated via JWT token", payload.username);
+    log::info!("User `{} ({})` [POST /login] authenticated via JWT token", user.username, user.id);
 
     Ok(Json(auth::AuthResponse {
         token,
@@ -69,7 +69,7 @@ pub async fn users_handler(
     }
 
     let users_list = DATABASE.list_users().await.or_else(|err| {
-        log::error!("`{} ({})` [/users] got database error: {}", auth_user.username, auth_user.id, err);
+        log::error!("`{} ({})` [GET /users] got database error: {}", auth_user.username, auth_user.id, err);
         Err(StatusCode::INTERNAL_SERVER_ERROR)
     })?;
 
@@ -86,18 +86,18 @@ pub async fn users_create_handler(
     }
 
     let option_record = DATABASE.create_user(new_record.0).await.or_else(|err| {
-        log::error!("`{} ({})` [/users/create] got database error: {}", auth_user.username, auth_user.id, err);
+        log::error!("`{} ({})` [POST /users/create] got database error: {}", auth_user.username, auth_user.id, err);
         Err(StatusCode::INTERNAL_SERVER_ERROR)
     })?;
 
     if option_record.is_none() {
-        log::error!("`{} ({})` [CREATE_USER] got empty database response", auth_user.username, auth_user.id);
+        log::error!("`{} ({})` [POST /users/create] got empty database response", auth_user.username, auth_user.id);
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     }
 
     let user_record = option_record.unwrap();
 
-    log::info!("`{} ({})` [CREATE_USER] created `{} ({})`", auth_user.username, auth_user.id, user_record.username, user_record.id.clone().map(|id| id.to_string()).unwrap_or_default());
+    log::info!("`{} ({})` [POST /users/create] created `{} ({})`", auth_user.username, auth_user.id, user_record.username, user_record.id.clone().map(|id| id.id.to_string()).unwrap_or_default());
 
     return Ok(Json(user_record))
 }
@@ -113,12 +113,41 @@ pub async fn users_username_handler(
     }
 
     let option_record = DATABASE.get_user_by_username(username).await.or_else(|err| {
-        log::error!("`{} ({})` [/users/{{username}}] got database error: {}", auth_user.username, auth_user.id, err);
+        log::error!("`{} ({})` [GET /users/{{username}}] got database error: {}", auth_user.username, auth_user.id, err);
         Err(StatusCode::INTERNAL_SERVER_ERROR)
     })?;
 
     match option_record {
         Some(record) => Ok(Json(record)),
+        None => Err(StatusCode::NOT_FOUND)
+    }
+}
+
+/// DELETE `/users/{username}`
+pub async fn users_username_delete_handler(
+    auth_user: middleware::AuthUser,
+    Path(username): Path<String>,
+) -> Result<Json<database::user::UserRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let user_record = DATABASE.get_user_by_username(username).await.or_else(|err| {
+        log::error!("`{} ({})` [DELETE /users/{{username}}] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    match user_record {
+        Some(record) => {
+            let _ = DATABASE.delete_user(record.id.clone().unwrap().id.to_string()).await
+                .or_else(|err| {
+                    log::error!("`{} ({})` [DELETE /users/{{username}}] got database error: {}", auth_user.username, auth_user.id, err);
+                    Err(StatusCode::INTERNAL_SERVER_ERROR)
+                })?;
+
+            log::info!("`{} ({})` [DELETE /users/{{username}}] deleted user `{} ({}) role:{}`", auth_user.username, auth_user.id, record.username, record.id.as_ref().map(|id| id.id.to_string()).unwrap(), record.role);
+            Ok(Json(record))
+        },
         None => Err(StatusCode::NOT_FOUND)
     }
 }
