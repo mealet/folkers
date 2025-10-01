@@ -5,7 +5,10 @@ use axum::{
     response::{IntoResponse, Html},
 };
 
-use super::{auth, middleware};
+use super::{
+    DATABASE,
+    auth, middleware, database
+};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -13,8 +16,9 @@ pub struct AppState {
     pub jwt_service: auth::jwt::JwtService
 }
 
-// Routers
+// Public Routers
 
+/// GET `/`
 pub async fn root_handler() -> impl IntoResponse {
     (
         StatusCode::OK,
@@ -22,6 +26,7 @@ pub async fn root_handler() -> impl IntoResponse {
     )
 }
 
+/// POST `/login`
 pub async fn login_handler(
     State(state): State<AppState>,
     Json(payload): Json<auth::LoginRequest>
@@ -44,8 +49,55 @@ pub async fn login_handler(
     }))
 }
 
+// Editors Routers
+
+/// GET `/verify`
 pub async fn verify_handler(
     auth_user: middleware::AuthUser 
 ) -> impl IntoResponse {
     Html(format!("{:?}", auth_user))
+}
+
+// Admins Routers
+
+/// GET `/users`
+pub async fn users_handler(
+    auth_user: middleware::AuthUser,
+) -> Result<Json<Vec<database::user::UserRecord>>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let users_list = DATABASE.list_users().await.or_else(|err| {
+        log::error!("`{} ({})` [/users] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    return Ok(Json(users_list));
+}
+
+/// POST `/users/create`
+pub async fn users_create_handler(
+    auth_user: middleware::AuthUser,
+    new_record: Json<database::user::CreateUserRecord>
+) -> Result<Json<database::user::UserRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let option_record = DATABASE.create_user(new_record.0).await.or_else(|err| {
+        log::error!("`{} ({})` [/users/create] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    if option_record.is_none() {
+        log::error!("`{} ({})` [CREATE_USER] got empty database response", auth_user.username, auth_user.id);
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    let user_record = option_record.unwrap();
+
+    log::info!("`{} ({})` [CREATE_USER] created `{} ({})`", auth_user.username, auth_user.id, user_record.username, user_record.id.clone().map(|id| id.to_string()).unwrap_or_default());
+
+    return Ok(Json(user_record))
 }

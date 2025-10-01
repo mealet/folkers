@@ -16,7 +16,7 @@ pub struct AuthResponse {
     pub token_type: String,
 }
 
-/// Wrapper for encapsulating access to database
+/// Wrapper for encapsulating database access to authenticate user
 #[derive(Clone)]
 pub struct UserRepository;
 

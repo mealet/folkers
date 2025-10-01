@@ -8,7 +8,7 @@ use surrealdb::{
     Surreal
 };
 
-mod user;
+pub mod user;
 
 const USER: &str = "user";
 
