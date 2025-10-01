@@ -1,6 +1,6 @@
 use axum::{
     Json,
-    extract::State,
+    extract::{State, Path},
     http::StatusCode,
     response::{IntoResponse, Html},
 };
@@ -16,7 +16,7 @@ pub struct AppState {
     pub jwt_service: auth::jwt::JwtService
 }
 
-// Public Routers
+// INFO: Public Routers
 
 /// GET `/`
 pub async fn root_handler() -> impl IntoResponse {
@@ -49,7 +49,7 @@ pub async fn login_handler(
     }))
 }
 
-// Editors Routers
+// INFO: Editors Routers
 
 /// GET `/verify`
 pub async fn verify_handler(
@@ -58,7 +58,7 @@ pub async fn verify_handler(
     Html(format!("{:?}", auth_user))
 }
 
-// Admins Routers
+// INFO: Admins Routers
 
 /// GET `/users`
 pub async fn users_handler(
@@ -100,4 +100,25 @@ pub async fn users_create_handler(
     log::info!("`{} ({})` [CREATE_USER] created `{} ({})`", auth_user.username, auth_user.id, user_record.username, user_record.id.clone().map(|id| id.to_string()).unwrap_or_default());
 
     return Ok(Json(user_record))
+}
+
+
+/// GET `/users/{username}`
+pub async fn users_username_handler(
+    auth_user: middleware::AuthUser,
+    Path(username): Path<String>,
+) -> Result<Json<database::user::UserRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let option_record = DATABASE.get_user_by_username(username).await.or_else(|err| {
+        log::error!("`{} ({})` [/users/{{username}}] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    match option_record {
+        Some(record) => Ok(Json(record)),
+        None => Err(StatusCode::NOT_FOUND)
+    }
 }

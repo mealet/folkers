@@ -66,6 +66,7 @@ async fn main() -> anyhow::Result<()> {
     let admin_routers = Router::new()
         .route("/users", routing::get(routers::users_handler))
         .route("/users/create", routing::post(routers::users_create_handler))
+        .route("/users/{username}", routing::get(routers::users_username_handler))
         .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
 
     let app = Router::new()
