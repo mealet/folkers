@@ -59,13 +59,19 @@ async fn main() -> anyhow::Result<()> {
         .route("/", routing::get(routers::root_handler))
         .route("/login", routing::post(routers::login_handler));
 
-    let protected_routers = Router::new()
+    let editors_routers= Router::new()
         .route("/verify", routing::get(routers::verify_handler))
+        .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
+
+    let admin_routers = Router::new()
+        .route("/users", routing::get(routers::users_handler))
+        .route("/users/create", routing::post(routers::users_create_handler))
         .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
 
     let app = Router::new()
         .merge(public_routers)
-        .merge(protected_routers)
+        .merge(editors_routers)
+        .merge(admin_routers)
         .with_state(app_state)
         .layer(cors);
 
