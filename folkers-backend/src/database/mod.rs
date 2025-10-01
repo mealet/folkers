@@ -48,6 +48,20 @@ DEFINE FIELD IF NOT EXISTS creation_datetime ON TABLE {USER} TYPE datetime;
 DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
 ")).await?;
 
+        match (std::env::var("FOLKERS_STATIC_ADMIN_USERNAME"), std::env::var("FOLKERS_STATIC_ADMIN_PASSWORD")) {
+            (Ok(admin_username), Ok(admin_password)) => {
+                let _ = self.create_user(user::CreateUserRecord {
+                    username: admin_username,
+                    password: crate::auth::UserRepository::hash_password(&admin_password).unwrap(),
+                    role: crate::auth::user::UserRole::Admin.to_string(),
+                    created_by: String::from("system")
+                }).await;
+            }
+            _ => {
+                log::warn!("Static admin wasn't initialized (environment variables fetch error)");
+            }
+        };
+
         Ok(())
     }
 
@@ -64,7 +78,7 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
                     password: user.password,
                     role: user.role,
                     created_by: user.created_by,
-                    creation_datetime: chrono::Utc::now()
+                    creation_datetime: surrealdb::Datetime::from(chrono::Utc::now())
                 }
             ).await;
 
@@ -81,6 +95,19 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
             .ok()?;
 
         user_record
+    }
+
+    pub async fn get_user_by_username(
+        &self,
+        username: String
+    ) -> Result<Option<user::UserRecord>, surrealdb::Error> {
+        let mut query = self.connection
+            .query(format!("SELECT * FROM {USER} WHERE username = $username"))
+            .bind(("username", username))
+            .await?;
+
+        let result: Option<user::UserRecord> = query.take(0usize)?;
+        return Ok(result)
     }
 
     pub async fn update_user(

@@ -1,6 +1,6 @@
 #[derive(Debug, Clone)]
 pub struct User {
-    pub id: i32,
+    pub id: String,
     pub username: String,
     pub password_hash: String,
     pub role: UserRole

@@ -8,7 +8,7 @@ use super::user;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     /// User ID
-    pub sub: i32,
+    pub sub: String,
     /// User Name
     pub username: String,
     /// User Role
@@ -58,7 +58,7 @@ impl JwtService {
             .timestamp() as usize;
 
         let claims = Claims {
-            sub: user.id,
+            sub: user.id.clone(),
             username: user.username.clone(),
             role: user.role.to_string(),
             exp: expiration

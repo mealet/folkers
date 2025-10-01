@@ -45,7 +45,7 @@ fn extract_token_from_headers(headers: &HeaderMap) -> Option<String> {
 #[derive(Debug, Clone)]
 #[allow(unused)]
 pub struct AuthUser {
-    pub id: i32,
+    pub id: String,
     pub username: String,
     pub role: auth::user::UserRole
 }
