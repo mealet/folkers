@@ -97,7 +97,7 @@ pub async fn users_create_handler(
 
     let user_record = option_record.unwrap();
 
-    log::info!("`{} ({})` [POST /users/create] created `{} ({})`", auth_user.username, auth_user.id, user_record.username, user_record.id.clone().map(|id| id.id.to_string()).unwrap_or_default());
+    log::info!("`{} ({})` [POST /users/create] created `{} ({}) role: {}`", auth_user.username, auth_user.id, user_record.username, user_record.id.clone().map(|id| id.id.to_string()).unwrap_or_default(), user_record.role);
 
     return Ok(Json(user_record))
 }
@@ -145,7 +145,44 @@ pub async fn users_username_delete_handler(
                     Err(StatusCode::INTERNAL_SERVER_ERROR)
                 })?;
 
-            log::info!("`{} ({})` [DELETE /users/{{username}}] deleted user `{} ({}) role:{}`", auth_user.username, auth_user.id, record.username, record.id.as_ref().map(|id| id.id.to_string()).unwrap(), record.role);
+            log::info!("`{} ({})` [DELETE /users/{{username}}] deleted user `{} ({}) role: {}`", auth_user.username, auth_user.id, record.username, record.id.as_ref().map(|id| id.id.to_string()).unwrap(), record.role);
+            Ok(Json(record))
+        },
+        None => Err(StatusCode::NOT_FOUND)
+    }
+}
+
+/// PATCH `/users/{username}`
+pub async fn users_username_patch_handler(
+    auth_user: middleware::AuthUser,
+    Path(username): Path<String>,
+    mut patched: Json<database::user::CreateUserRecord>
+) -> Result<Json<database::user::UserRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let user_record = DATABASE.get_user_by_username(username).await.or_else(|err| {
+        log::error!("`{} ({})` [PATCH /users/{{username}}] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    match user_record {
+        Some(record) => {
+            // disabling `created_by` field patching
+
+            patched.created_by = record.created_by.clone();
+
+            let _ = DATABASE.update_user(record.id.clone().unwrap().id.to_string(), patched.0.clone()).await
+                .or_else(|err| {
+                    log::error!("`{} ({})` [PATCH /users/{{username}}] got database error: {}", auth_user.username, auth_user.id, err);
+                    Err(StatusCode::INTERNAL_SERVER_ERROR)
+                })?;
+
+            let password_changed=  record.password != patched.password;
+
+            log::info!("`{} ({})` [PATCH /users/{{username}}] updated user `{} ({}), role: {}` -> `{}, role: {}, password changed: {}`", auth_user.username, auth_user.id, record.username, record.id.as_ref().map(|id| id.id.to_string()).unwrap(), record.role, patched.username, patched.role, password_changed);
+
             Ok(Json(record))
         },
         None => Err(StatusCode::NOT_FOUND)

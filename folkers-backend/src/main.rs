@@ -68,6 +68,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/users/create", routing::post(routers::users_create_handler))
         .route("/users/{username}", routing::get(routers::users_username_handler))
         .route("/users/{username}", routing::delete(routers::users_username_delete_handler))
+        .route("/users/{username}", routing::patch(routers::users_username_patch_handler))
         .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
 
     let app = Router::new()

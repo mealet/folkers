@@ -11,7 +11,7 @@ pub struct UserRecord {
     pub creation_datetime: Datetime
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateUserRecord {
     pub username: String,
     pub password: String,

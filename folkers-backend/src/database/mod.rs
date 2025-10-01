@@ -123,7 +123,8 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
     ) -> Result<Option<user::UserRecord>, surrealdb::Error> {
         let updated_user = self.connection
             .update((USER, id.as_ref()))
-            .content(user)
+            .merge(user)
+            // .content(user)
             .await;
 
         updated_user
