@@ -17,12 +17,14 @@ pub struct DatabaseClient {
 }
 
 impl DatabaseClient {
+    /// Initialization for LazyLock (singleton)
     pub fn init() -> Self {
         Self {
             connection: Surreal::init()
         }
     }
 
+    /// Setup database connection and define necessary fields
     pub async fn setup(&self, endpoint: &str, namespace: &str, database: &str, username: &str, password: &str) -> Result<(), surrealdb::Error> {
         self.connection.connect::<Ws>(endpoint).await?;
 
@@ -65,6 +67,7 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
         Ok(())
     }
 
+    /// Create new user
     pub async fn create_user(
         &self,
         user: user::CreateUserRecord
@@ -85,6 +88,7 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
         created_user
     }
 
+    /// Get user by SurrealDB Identifier
     pub async fn get_user(
         &self,
         id: &str
@@ -97,6 +101,7 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
         user_record
     }
 
+    /// Get user by his username
     pub async fn get_user_by_username(
         &self,
         username: String
@@ -110,6 +115,7 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
         return Ok(result)
     }
 
+    /// Update user data by SurrealDB ID
     pub async fn update_user(
         &self,
         id: &str,
@@ -123,6 +129,7 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
         updated_user
     }
 
+    /// Delete user by SurrealDB ID
     pub async fn delete_user(
         &self,
         id: &str
@@ -134,6 +141,7 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
         deleted_user
     }
 
+    /// List all users
     pub async fn list_users(
         &self
     ) -> Result<Vec<user::UserRecord>, surrealdb::Error> {
