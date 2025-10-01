@@ -9,7 +9,7 @@ mod database;
 
 const ENDPOINT: &str = "0.0.0.0:3000";
 
-static DATABASE: LazyLock<database::DatabaseClient> = LazyLock::new(database::DatabaseClient::init);
+pub static DATABASE: LazyLock<database::DatabaseClient> = LazyLock::new(database::DatabaseClient::init);
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
