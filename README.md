@@ -7,6 +7,7 @@ Folkers - a private information storage, which includes: vault with information 
 Required environment variables list:
 ```env
 FOLKERS_JWT_SECRET=secret jwt token
+FOLKERS_BASE64_SALT=base64 encoded salt for hash
 
 FOLKERS_DB_USERNAME=database username
 FOLKERS_DB_PASSWORD=database password
