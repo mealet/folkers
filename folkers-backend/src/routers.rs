@@ -79,11 +79,17 @@ pub async fn users_handler(
 /// POST `/users/create`
 pub async fn users_create_handler(
     auth_user: middleware::AuthUser,
-    new_record: Json<database::user::CreateUserRecord>
+    mut new_record: Json<database::user::CreateUserRecord>
 ) -> Result<Json<database::user::UserRecord>, StatusCode> {
     if auth_user.role < auth::user::UserRole::Admin {
         return Err(StatusCode::FORBIDDEN);
     }
+
+    // hashing password
+    new_record.password = auth::UserRepository::hash_password(&new_record.password).or_else(|err| {
+        log::error!("`{} ({})` [POST /users/create] got HASHING ERROR: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
 
     let option_record = DATABASE.create_user(new_record.0).await.or_else(|err| {
         log::error!("`{} ({})` [POST /users/create] got database error: {}", auth_user.username, auth_user.id, err);

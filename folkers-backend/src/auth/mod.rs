@@ -1,4 +1,10 @@
 use serde::{Serialize, Deserialize};
+use argon2::{
+    password_hash::{
+        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
+    },
+    Argon2
+};
 use crate::DATABASE;
 
 pub mod user;
@@ -25,8 +31,12 @@ impl UserRepository {
         Self
     }
 
-    pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
-        bcrypt::hash(password, bcrypt::DEFAULT_COST)
+    pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
+        let env_var = std::env::var("FOLKERS_BASE64_SALT").unwrap(); // already
+        // checked in main function
+
+        let salt = SaltString::from_b64(&env_var).unwrap();
+        Argon2::default().hash_password(password.as_ref(), &salt).map(|hash| hash.to_string())
     }
 
     pub async fn find_by_username(&self, username: &str) -> Option<user::User> {
@@ -42,9 +52,12 @@ impl UserRepository {
         None
     }
 
-    pub async fn verify_password(&self, username: &str, password_hash: &str) -> bool {
+    pub async fn verify_password(&self, username: &str, password: &str) -> bool {
         if let Some(user) = self.find_by_username(username).await {
-            return user.password_hash == password_hash;
+            let password_hash = PasswordHash::parse(&user.password_hash, argon2::password_hash::Encoding::B64);
+            if password_hash.is_err() { return false };
+
+            return Argon2::default().verify_password(password.as_ref(), &password_hash.unwrap()).is_ok();
         }
         
         false

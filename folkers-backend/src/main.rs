@@ -17,6 +17,13 @@ async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv()?;
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
+    std::env::var("FOLKERS_BASE64_SALT").ok().or_else(|| {
+        log::error!("💣 Critical Security Error. Salt is not found in environment variables.");
+        log::error!("Please provide your BASE64 encoded salt in environment variable named `FOLKERS_BASE64_SALT`");
+
+        std::process::exit(1);
+    });
+
     log::info!("🚀 Folkers Backend Server");
     log::info!("⚙️ Starting initialization...");
 
