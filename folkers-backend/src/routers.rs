@@ -91,6 +91,9 @@ pub async fn users_create_handler(
         Err(StatusCode::INTERNAL_SERVER_ERROR)
     })?;
 
+    // replacing field with current username (to avoid replacements)
+    new_record.created_by = auth_user.username.clone();
+
     let option_record = DATABASE.create_user(new_record.0).await.or_else(|err| {
         log::error!("`{} ({})` [POST /users/create] got database error: {}", auth_user.username, auth_user.id, err);
         Err(StatusCode::INTERNAL_SERVER_ERROR)
