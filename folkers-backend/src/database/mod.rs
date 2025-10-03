@@ -73,7 +73,7 @@ DEFINE FIELD IF NOT EXISTS traits_bad ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS avatar ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS media ON TABLE {PERSON} TYPE array<string>;
 
-DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {USER} COLUMNS name, surname, patronymic UNIQUE;
+DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS name, surname, patronymic UNIQUE;
 ")).await?;
 
         match (std::env::var("FOLKERS_STATIC_ADMIN_USERNAME"), std::env::var("FOLKERS_STATIC_ADMIN_PASSWORD")) {
