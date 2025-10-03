@@ -176,7 +176,6 @@ DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {USER} COLUMNS name, surname, 
         &self
     ) -> Result<Vec<user::UserRecord>, surrealdb::Error> {
         let users = self.connection.select(USER).await;
-
         users
     }
 
@@ -225,5 +224,11 @@ DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {USER} COLUMNS name, surname, 
             .ok()?;
 
         user_record
+    }
+
+    /// Get Persons Records list
+    pub async fn list_persons(&self) -> Result<Vec<person::PersonRecord>, surrealdb::Error> {
+        let records = self.connection.select(PERSON).await;
+        records 
     }
 }

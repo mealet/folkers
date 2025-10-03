@@ -51,11 +51,44 @@ pub async fn login_handler(
 
 // INFO: Editors Routers
 
-/// GET `/verify`
-pub async fn verify_handler(
-    auth_user: middleware::AuthUser 
-) -> impl IntoResponse {
-    Html(format!("{:?}", auth_user))
+pub async fn persons_handler(
+    auth_user: middleware::AuthUser,
+) -> Result<Json<Vec<database::person::PersonRecord>>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let records_list = DATABASE.list_persons().await.or_else(|err| {
+        log::error!("`{} ({})` [GET /persons] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    return Ok(Json(records_list));
+}
+
+pub async fn persons_create_handler(
+    auth_user: middleware::AuthUser,
+    new_record: Json<database::person::CreatePersonRecord>
+) -> Result<Json<database::person::PersonRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let option_record = DATABASE.add_person(new_record.0).await.or_else(|err| {
+        log::error!("`{} ({})` [POST /persons/create] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    if option_record.is_none() {
+        log::error!("`{} ({})` [POST /persons/create] got empty database response", auth_user.username, auth_user.id);
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    let person_record= option_record.unwrap();
+
+    log::info!("`{} ({})` [POST /persons/create] created person record: {} {} {}", auth_user.username, auth_user.id, person_record.name, person_record.surname, person_record.patronymic);
+
+    return Ok(Json(person_record))
 }
 
 // INFO: Admins Routers
