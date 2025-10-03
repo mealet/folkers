@@ -9,8 +9,10 @@ use surrealdb::{
 };
 
 pub mod user;
+pub mod person;
 
 const USER: &str = "user";
+const PERSON: &str = "person";
 
 pub struct DatabaseClient {
     connection: Surreal<Client>
@@ -36,7 +38,7 @@ impl DatabaseClient {
         self.connection.use_ns(namespace).use_db(database).await?;
 
         self.connection.query(format!("
-DEFINE TABLE IF NOT EXISTS {USER} SCHEMALESS
+DEFINE TABLE IF NOT EXISTS {USER} SCHEMAFULL
     PERMISSIONS FOR
         CREATE, SELECT WHERE $auth,
         FOR UPDATE, DELETE WHERE created_by = $auth;
@@ -47,7 +49,31 @@ DEFINE FIELD IF NOT EXISTS role ON TABLE {USER} TYPE string;
 DEFINE FIELD IF NOT EXISTS created_by ON TABLE {USER} TYPE string;
 DEFINE FIELD IF NOT EXISTS creation_datetime ON TABLE {USER} TYPE datetime;
 
-DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
+DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} COLUMNS username UNIQUE;
+
+
+DEFINE TABLE IF NOT EXISTS {PERSON} SCHEMAFULL
+    PERMISSIONS FOR
+        CREATE, SELECT WHERE $auth,
+        FOR UPDATE, DELETE WHERE created_by = $auth;
+
+DEFINE FIELD IF NOT EXISTS name ON TABLE {PERSON} TYPE string;
+DEFINE FIELD IF NOT EXISTS surname ON TABLE {PERSON} TYPE string;
+DEFINE FIELD IF NOT EXISTS patronymic ON TABLE {PERSON} TYPE string;
+
+DEFINE FIELD IF NOT EXISTS birthday ON TABLE {PERSON} TYPE datetime;
+DEFINE FIELD IF NOT EXISTS city ON TABLE {PERSON} TYPE string;
+DEFINE FIELD IF NOT EXISTS intented_address ON TABLE {PERSON} TYPE string;
+
+DEFINE FIELD IF NOT EXISTS summary ON TABLE {PERSON} TYPE string;
+DEFINE FIELD IF NOT EXISTS past ON TABLE {PERSON} TYPE string;
+DEFINE FIELD IF NOT EXISTS traits_good ON TABLE {PERSON} TYPE string;
+DEFINE FIELD IF NOT EXISTS traits_bad ON TABLE {PERSON} TYPE string;
+
+DEFINE FIELD IF NOT EXISTS avatar ON TABLE {PERSON} TYPE string;
+DEFINE FIELD IF NOT EXISTS media ON TABLE {PERSON} TYPE array<string>;
+
+DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {USER} COLUMNS name, surname, patronymic UNIQUE;
 ")).await?;
 
         match (std::env::var("FOLKERS_STATIC_ADMIN_USERNAME"), std::env::var("FOLKERS_STATIC_ADMIN_PASSWORD")) {
@@ -66,6 +92,8 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
 
         Ok(())
     }
+
+    // INFO: Users Records Section
 
     /// Create new user
     pub async fn create_user(
@@ -150,5 +178,52 @@ DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} FIELDS username UNIQUE;
         let users = self.connection.select(USER).await;
 
         users
+    }
+
+    // INFO: Persons Records Section
+    
+    // Add new Person record
+    pub async fn add_person(
+        &self,
+        person: person::CreatePersonRecord
+    ) -> Result<Option<person::PersonRecord>, surrealdb::Error> {
+        let created_record = self.connection
+            .create(PERSON)
+            .content(
+                person::PersonRecord {
+                    id: None,
+                    
+                    name: person.name,
+                    surname: person.surname,
+                    patronymic: person.patronymic,
+
+                    birthday: person.birthday,
+                    city: person.city,
+                    intented_address: person.intented_address,
+
+                    summary: person.summary,
+                    past: person.past,
+                    traits_good: person.traits_good,
+                    traits_bad: person.traits_bad,
+
+                    avatar: person.avatar,
+                    media: person.media
+                }
+            ).await;
+
+        created_record
+    }
+
+    /// Get Person record by SurrealDB Identifier
+    pub async fn get_person(
+        &self,
+        id: impl AsRef<str>
+    ) -> Option<person::PersonRecord> {
+        let user_record: Option<person::PersonRecord> = self.connection
+            .select((PERSON, id.as_ref()))
+            .await
+            .ok()?;
+
+        user_record
     }
 }
