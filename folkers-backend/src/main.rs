@@ -17,9 +17,16 @@ async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv()?;
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
-    std::env::var("FOLKERS_BASE64_SALT").ok().or_else(|| {
+    let base64_salt = std::env::var("FOLKERS_BASE64_SALT").ok().or_else(|| {
         log::error!("💣 Critical Security Error. Salt is not found in environment variables.");
         log::error!("Please provide your BASE64 encoded salt in environment variable named `FOLKERS_BASE64_SALT`");
+
+        std::process::exit(1);
+    }).unwrap();
+
+    let _: Result<argon2::password_hash::SaltString, String> = argon2::password_hash::SaltString::from_b64(&base64_salt).or_else(|err| {
+        log::error!("💣 Critical Security Error. Encoded salt string failed verification!");
+        log::error!("Error: {}", err);
 
         std::process::exit(1);
     });
