@@ -38,6 +38,7 @@ impl DatabaseClient {
         self.connection.use_ns(namespace).use_db(database).await?;
 
         self.connection.query(format!("
+-- Users Table
 DEFINE TABLE IF NOT EXISTS {USER} SCHEMAFULL
     PERMISSIONS FOR
         CREATE, SELECT WHERE $auth,
@@ -51,6 +52,7 @@ DEFINE FIELD IF NOT EXISTS creation_datetime ON TABLE {USER} TYPE datetime;
 
 DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} COLUMNS username UNIQUE;
 
+-- Persons Records Table
 
 DEFINE TABLE IF NOT EXISTS {PERSON} SCHEMAFULL
     PERMISSIONS FOR
@@ -73,7 +75,41 @@ DEFINE FIELD IF NOT EXISTS traits_bad ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS avatar ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS media ON TABLE {PERSON} TYPE array<string>;
 
-DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS name, surname, patronymic UNIQUE;
+DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS surname, name, patronymic UNIQUE;
+
+-- Functions
+
+DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
+    LET $q = string::trim(string::lowercase($query));
+    LET $words = $q.split(' ');
+    
+    RETURN SELECT * FROM person 
+    WHERE 
+        string::lowercase(surname) CONTAINS $q
+        OR string::lowercase(name) CONTAINS $q
+        OR string::lowercase(patronymic) CONTAINS $q
+        OR string::lowercase(surname + ' ' + name + ' ' + patronymic) CONTAINS $q
+        OR string::lowercase(name + ' ' + patronymic + ' ' + surname) CONTAINS $q
+        OR string::lowercase(patronymic + ' ' + name + ' ' + surname) CONTAINS $q
+        OR string::lowercase(surname + ' ' + patronymic + ' ' + name) CONTAINS $q
+        OR array::len($words) >= 2 AND (
+            (string::lowercase(surname) CONTAINS array::at($words, 0) AND string::lowercase(name) CONTAINS array::at($words, 1))
+            OR (string::lowercase(surname) CONTAINS array::at($words, 1) AND string::lowercase(name) CONTAINS array::at($words, 0))
+            OR (string::lowercase(name) CONTAINS array::at($words, 0) AND string::lowercase(patronymic) CONTAINS array::at($words, 1))
+            OR (string::lowercase(name) CONTAINS array::at($words, 1) AND string::lowercase(patronymic) CONTAINS array::at($words, 0))
+        )
+        OR array::len($words) = 3 AND (
+            (string::lowercase(surname) CONTAINS array::at($words, 0) AND string::lowercase(name) CONTAINS array::at($words, 1) AND string::lowercase(patronymic) CONTAINS array::at($words, 2))
+            OR (string::lowercase(surname) CONTAINS array::at($words, 0) AND string::lowercase(name) CONTAINS array::at($words, 2) AND string::lowercase(patronymic) CONTAINS array::at($words, 1))
+            OR (string::lowercase(surname) CONTAINS array::at($words, 1) AND string::lowercase(name) CONTAINS array::at($words, 0) AND string::lowercase(patronymic) CONTAINS array::at($words, 2))
+            OR (string::lowercase(surname) CONTAINS array::at($words, 1) AND string::lowercase(name) CONTAINS array::at($words, 2) AND string::lowercase(patronymic) CONTAINS array::at($words, 0))
+            OR (string::lowercase(surname) CONTAINS array::at($words, 2) AND string::lowercase(name) CONTAINS array::at($words, 0) AND string::lowercase(patronymic) CONTAINS array::at($words, 1))
+            OR (string::lowercase(surname) CONTAINS array::at($words, 2) AND string::lowercase(name) CONTAINS array::at($words, 1) AND string::lowercase(patronymic) CONTAINS array::at($words, 0))
+        )
+    ORDER BY
+        surname, name, patronymic
+    LIMIT 25;
+}};
 ")).await?;
 
         match (std::env::var("FOLKERS_STATIC_ADMIN_USERNAME"), std::env::var("FOLKERS_STATIC_ADMIN_PASSWORD")) {
