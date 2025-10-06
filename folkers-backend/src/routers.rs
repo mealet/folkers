@@ -66,6 +66,17 @@ pub async fn upload_handler(
     Ok(result)
 }
 
+pub async fn media_handler(
+    auth_user: middleware::AuthUser,
+    Path(hash): Path<String>
+) -> impl IntoResponse {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err((StatusCode::FORBIDDEN, "Not enough permissions".to_string()));
+    }
+
+    uploads::get_photo(hash).await
+}
+
 pub async fn persons_handler(
     auth_user: middleware::AuthUser,
     Json(payload): Json<Option<database::person::SearchPersonRecord>>

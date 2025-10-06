@@ -81,6 +81,7 @@ async fn main() -> anyhow::Result<()> {
 
     let editors_routers= Router::new()
         .route("/upload", routing::post(routers::upload_handler))
+        .route("/media/{hash}", routing::get(routers::media_handler))
         .route("/persons", routing::get(routers::persons_handler))
         .route("/persons/create", routing::post(routers::persons_create_handler))
         .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));

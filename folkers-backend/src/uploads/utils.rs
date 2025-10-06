@@ -9,7 +9,7 @@ pub fn get_file_extension(content_type: &str) -> &str {
     }
 }
 
-fn get_content_type(filename: &str) -> &str {
+pub fn get_content_type(filename: &str) -> &str {
     match filename {
         fname if fname.ends_with(".jpg") || fname.ends_with(".jpeg") => "image/jpeg",
         fname if fname.ends_with(".png") => "image/png",

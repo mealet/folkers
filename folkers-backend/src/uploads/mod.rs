@@ -1,6 +1,7 @@
 use axum::{
     extract::{Multipart, Json},
-    http::StatusCode
+    http::{StatusCode, HeaderMap},
+    response::IntoResponse
 };
 use sha2::{Sha256, Digest};
 
@@ -37,4 +38,34 @@ pub async fn upload_photo(mut multipart: Multipart) -> Result<Json<String>, (Sta
     }
     
     Err((StatusCode::BAD_REQUEST, "No photo found".to_string()))
+}
+
+pub async fn get_photo(hash: impl AsRef<str>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let hash = hash.as_ref();
+    let entries = tokio::fs::read_dir(UPLOADS_DIR).await
+        .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
+
+    let mut files = tokio::fs::ReadDir::from(entries);
+
+    while let Some(entry) = files.next_entry().await.unwrap() {
+        let filename = entry.file_name().to_string_lossy().to_string();
+
+        if filename.starts_with(&hash) {
+            let filepath = format!("{}/{}", UPLOADS_DIR, filename);
+
+            match tokio::fs::read(&filepath).await {
+                Ok(content) => {
+                    let mut headers = HeaderMap::new();
+
+                    headers.insert("content-type", utils::get_content_type(&filename).parse().unwrap());
+                    headers.insert("x-file-hash", hash.parse().unwrap());
+
+                    return Ok((headers, content))
+                },
+                Err(_) => break
+            }
+        }
+    }
+
+    Err((StatusCode::NOT_FOUND, "Photo not found".to_string()))
 }
