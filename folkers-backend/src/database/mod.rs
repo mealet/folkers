@@ -262,6 +262,17 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
         user_record
     }
 
+    pub async fn find_person(&self, search_query: impl AsRef<str>) -> Result<Vec<person::PersonRecord>, surrealdb::Error> {
+        let search_query = search_query.as_ref().to_string();
+        let mut query = self.connection
+            .query("SELECT * FROM fn::find_person($query)")
+            .bind(("query", search_query))
+            .await?;
+
+        let result = query.take(0usize);
+        return result;
+    }
+
     /// Get Persons Records list
     pub async fn list_persons(&self) -> Result<Vec<person::PersonRecord>, surrealdb::Error> {
         let records = self.connection.select(PERSON).await;

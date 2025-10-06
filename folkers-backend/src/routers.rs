@@ -53,15 +53,26 @@ pub async fn login_handler(
 
 pub async fn persons_handler(
     auth_user: middleware::AuthUser,
+    Json(payload): Json<Option<database::person::SearchPersonRecord>>
 ) -> Result<Json<Vec<database::person::PersonRecord>>, StatusCode> {
     if auth_user.role < auth::user::UserRole::Editor {
         return Err(StatusCode::FORBIDDEN);
     }
 
-    let records_list = DATABASE.list_persons().await.or_else(|err| {
-        log::error!("`{} ({})` [GET /persons] got database error: {}", auth_user.username, auth_user.id, err);
-        Err(StatusCode::INTERNAL_SERVER_ERROR)
-    })?;
+    let records_list = match payload {
+        Some(search_payload) => {
+            DATABASE.find_person(&search_payload.search_query).await.or_else(|err| {
+                log::error!("`{} ({})` [GET /persons] [PAYLOAD: '{}'] got database error: {}", auth_user.username, auth_user.id, search_payload.search_query, err);
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
+            })?
+        },
+        None => {
+            DATABASE.list_persons().await.or_else(|err| {
+                log::error!("`{} ({})` [GET /persons] [NO PAYLOAD] got database error: {}", auth_user.username, auth_user.id, err);
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
+            })?
+        }
+    };
 
     return Ok(Json(records_list));
 }
