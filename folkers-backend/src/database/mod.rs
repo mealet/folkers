@@ -1,6 +1,4 @@
 //! Database interaction module.
-//! You can adapt it and use with axum's `with_state`, but I'd recommend to make
-//! it static with LazyLock.
 
 use surrealdb::{
     engine::remote::ws::{Client, Ws},
@@ -14,6 +12,9 @@ pub mod person;
 const USER: &str = "user";
 const PERSON: &str = "person";
 
+/// Database interaction client.
+/// You can adapt it and use with axum's `with_state`, but I'd recommend to make
+/// it static with LazyLock.
 pub struct DatabaseClient {
     connection: Surreal<Client>
 }

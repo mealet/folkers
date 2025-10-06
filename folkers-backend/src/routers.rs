@@ -104,6 +104,7 @@ pub async fn persons_handler(
     return Ok(Json(records_list));
 }
 
+/// GET `/persons/{id}`
 pub async fn persons_id_handler(
     auth_user: middleware::AuthUser,
     Path(id): Path<String>
@@ -191,6 +192,12 @@ pub async fn persons_delete_handler(
 
     match person_record {
         Some(record) => {
+            // verifying if we have access
+
+            if auth_user.role < auth::user::UserRole::Admin && record.author.id.to_string() != auth_user.id {
+                return Err(StatusCode::FORBIDDEN);
+            }
+
             let _ = DATABASE.delete_person(id).await.or_else(|err| {
                     log::error!("`{} ({})` [DELETE /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
                     Err(StatusCode::INTERNAL_SERVER_ERROR)

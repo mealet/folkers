@@ -27,17 +27,130 @@
 //! ```
 //!
 //! ## API
+//! **❗ Each endpoint, which requires authorization will return `401 UNAUTHORIZED` if: <br/>**
+//! **- JWT Token is not provided / wrong <br/>**
+//! **- JWT Token is expired**
+//!
+//! ----
+//!
 //! - ### GET `/` <br/>
 //! > **Returns:** HTML markup with message
-//!
+//! ----
 //! - ### POST `/login` <br/>
 //! > **Payload:** [LoginRequest](auth::LoginRequest) <br/>
 //! > **Errors:** <br/>
-//! > - `401 UNAUTHORIZED` user doesn't exists, verification failed <br/>
+//! > - `401 UNAUTHORIZED` User doesn't exists, Verification failed <br/>
 //! > - `500 INTERNAL SERVER ERROR` JWT generation error <br/>
 //! >
-//! > **Returns:** JWT Token, [AuthResponse](auth::AuthResponse)
-//!
+//! > **Returns:** [AuthResponse](auth::AuthResponse) (JWT Token Structure)
+//! ----
+//! - ### POST `/upload` <br/>
+//! > **Payload:** Image File <br/>
+//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `500 INTERNAL SERVER ERROR` Server IO error <br/>
+//! >
+//! > **Returns:** [String], image hash (required for getter)
+//! ----
+//! - ### GET `/media/{hash}` <br/>
+//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` Media not found <br/>
+//! > - `500 INTERNAL SERVER ERROR` Server IO error <br/>
+//! >
+//! > **Returns:** Image
+//! ----
+//! - ### GET `/persons` <br/>
+//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** List of [PersonRecord](database::person::PersonRecord)
+//! ----
+//! - ### POST `/persons/create` <br/>
+//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Payload:** [CreatePersonRecord](database::person::CreatePersonRecord)
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** [PersonRecord](database::person::PersonRecord)
+//! ----
+//! - ### GET `/persons/{id}` <br/>
+//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` Record not found <br/>
+//! >
+//! > **Returns:** [PersonRecord](database::person::PersonRecord)
+//! ----
+//! - ### PATCH `/persons/{id}` <br/>
+//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Payload:** [CreatePersonRecord](database::person::CreatePersonRecord)
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions, Not author of record <br/>
+//! > - `404 NOT FOUND` Record not found <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** [PersonRecord](database::person::PersonRecord)
+//! ----
+//! - ### DELETE `/persons/{id}` <br/>
+//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions, Not author of record <br/>
+//! > - `404 NOT FOUND` Record not found <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** [PersonRecord](database::person::PersonRecord)
+//! ----
+//! - ### GET `/users` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` Record not found <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** List of [UserRecord](database::user::UserRecord)
+//! ----
+//! - ### POST `/users/create` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Payload:** [CreateUserRecord](database::user::CreateUserRecord) <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `500 INTERNAL SERVER ERROR` Hashing error, Database error <br/>
+//! >
+//! > **Returns:** [UserRecord](database::user::UserRecord)
+//! ----
+//! - ### GET `/users/{username}` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` User not found <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** [UserRecord](database::user::UserRecord)
+//! ----
+//! - ### PATCH `/users/{username}` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Payload:** [CreateUserRecord](database::user::CreateUserRecord) <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` User not found <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** [UserRecord](database::user::UserRecord)
+//! ----
+//! - ### DELETE `/users/{username}` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` User not found <br/>
+//! > - `500 INTERNAL SERVER ERROR` Database error <br/>
+//! >
+//! > **Returns:** [UserRecord](database::user::UserRecord)
 
 use axum::{Router, http::Method, routing};
 use tower_http::cors::{self, CorsLayer};

@@ -1,3 +1,5 @@
+//! Authentication manager module.
+
 use serde::{Serialize, Deserialize};
 use argon2::{
     password_hash::{
@@ -10,12 +12,14 @@ use crate::DATABASE;
 pub mod user;
 pub mod jwt;
 
+/// Login Request Payload
 #[derive(Debug, Deserialize)]
 pub struct LoginRequest {
     pub username: String,
     pub password: String
 }
 
+/// Login Server Response
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {
     pub token: String,
