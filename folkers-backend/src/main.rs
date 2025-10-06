@@ -15,6 +15,7 @@
 //! ```env
 //! FOLKERS_JWT_SECRET=secret string for jwt tokens
 //! FOLKERS_BASE64_SALT=base64 encoded salt for hash
+//! FOLKERS_UPLOAD_DIR=path to directory with uploaded media
 //! 
 //! FOLKERS_DB_USERNAME=database username
 //! FOLKERS_DB_PASSWORD=database password
@@ -169,7 +170,7 @@ pub static DATABASE: LazyLock<database::DatabaseClient> = LazyLock::new(database
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialization
-    dotenvy::dotenv()?;
+    let _ = dotenvy::dotenv();
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     let base64_salt = std::env::var("FOLKERS_BASE64_SALT").ok().or_else(|| {

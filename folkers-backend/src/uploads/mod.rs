@@ -4,13 +4,21 @@ use axum::{
     response::IntoResponse
 };
 use sha2::{Sha256, Digest};
+use std::sync::LazyLock;
 
 mod utils;
 
-const UPLOADS_DIR: &str = ".uploads";
+static UPLOADS_DIR: LazyLock<String> = LazyLock::new(|| {
+    if let Ok(upload_dir) = std::env::var("FOLKERS_UPLOADS_DIR") {
+        upload_dir
+    } else {
+        log::warn!("Environment variable `UPLOADS_DIR` is not found, default is `./uploads`");
+        String::from("./uploads")
+    }
+});
 
 pub async fn init_uploads() -> Result<(), std::io::Error> {
-    tokio::fs::create_dir_all(UPLOADS_DIR).await
+    tokio::fs::create_dir_all(UPLOADS_DIR.to_owned()).await
 }
 
 pub async fn upload_photo(mut multipart: Multipart) -> Result<Json<String>, (StatusCode, String)> {
@@ -26,7 +34,7 @@ pub async fn upload_photo(mut multipart: Multipart) -> Result<Json<String>, (Sta
 
             let file_extension = utils::get_file_extension(&content_type);
             let filename = format!("{}.{}", hash_hex, file_extension);
-            let filepath = format!("{}/{}", UPLOADS_DIR, filename);
+            let filepath = format!("{}/{}", UPLOADS_DIR.to_owned(), filename);
 
             if !tokio::fs::try_exists(&filepath).await.unwrap_or(false) {
                 tokio::fs::write(&filepath, &data).await
@@ -42,7 +50,7 @@ pub async fn upload_photo(mut multipart: Multipart) -> Result<Json<String>, (Sta
 
 pub async fn get_photo(hash: impl AsRef<str>) -> Result<impl IntoResponse, (StatusCode, String)> {
     let hash = hash.as_ref();
-    let entries = tokio::fs::read_dir(UPLOADS_DIR).await
+    let entries = tokio::fs::read_dir(UPLOADS_DIR.to_owned()).await
         .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
 
     let mut files = tokio::fs::ReadDir::from(entries);
@@ -51,7 +59,7 @@ pub async fn get_photo(hash: impl AsRef<str>) -> Result<impl IntoResponse, (Stat
         let filename = entry.file_name().to_string_lossy().to_string();
 
         if filename.starts_with(&hash) {
-            let filepath = format!("{}/{}", UPLOADS_DIR, filename);
+            let filepath = format!("{}/{}", UPLOADS_DIR.to_owned(), filename);
 
             match tokio::fs::read(&filepath).await {
                 Ok(content) => {
