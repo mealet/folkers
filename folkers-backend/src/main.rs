@@ -73,7 +73,7 @@
 //! ----
 //! - ### POST `/persons/create` <br/>
 //! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
-//! > **Payload:** [CreatePersonRecord](database::person::CreatePersonRecord)
+//! > **Payload:** [CreatePersonRecord](database::person::CreatePersonRecord) <br/>
 //! > **Errors:** <br/>
 //! > - `403 FORBIDDEN` Not enough permissions <br/>
 //! > - `500 INTERNAL SERVER ERROR` Database error <br/>
@@ -90,7 +90,7 @@
 //! ----
 //! - ### PATCH `/persons/{id}` <br/>
 //! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
-//! > **Payload:** [CreatePersonRecord](database::person::CreatePersonRecord)
+//! > **Payload:** [CreatePersonRecord](database::person::CreatePersonRecord) <br/>
 //! > **Errors:** <br/>
 //! > - `403 FORBIDDEN` Not enough permissions, Not author of record <br/>
 //! > - `404 NOT FOUND` Record not found <br/>
