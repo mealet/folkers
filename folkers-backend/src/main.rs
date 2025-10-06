@@ -1,3 +1,44 @@
+//! # Folkers Backend Server
+//! **Folkers Backend** is the main toolchain to safely communicate with database. It provides
+//! secure JWT authorization, passwords Argon2 hashing, media uploads manager and user roles
+//! verification to avoid unauthorized access.
+//!
+//! ## Technical Information
+//! - **Database:** SurrealDB
+//! - **Web Framework:** Axum
+//! - **Password Hasher:** Argon2
+//! - **Media Hasher:** Sha256
+//! - **Authorization:** JSON Web Tokens (Bearer)
+//!
+//! ## Environment Variables
+//! List of required environment variables (duplicated in README.md):
+//! ```env
+//! FOLKERS_JWT_SECRET=secret string for jwt tokens
+//! FOLKERS_BASE64_SALT=base64 encoded salt for hash
+//! 
+//! FOLKERS_DB_USERNAME=database username
+//! FOLKERS_DB_PASSWORD=database password
+//! FOLKERS_DB_NAMESPACE=database namespace (surrealdb)
+//! FOLKERS_DB_DATABASE=database base name (surrealdb)
+//! FOLKERS_DB_ENDPOINT=database endpoint
+//! 
+//! FOLKERS_STATIC_ADMIN_USERNAME=admin that will be created every start
+//! FOLKERS_STATIC_ADMIN_PASSWORD=static admin password
+//! ```
+//!
+//! ## API
+//! - ### GET `/` <br/>
+//! > **Returns:** HTML markup with message
+//!
+//! - ### POST `/login` <br/>
+//! > **Payload:** [LoginRequest](auth::LoginRequest) <br/>
+//! > **Errors:** <br/>
+//! > - `401 UNAUTHORIZED` user doesn't exists, verification failed <br/>
+//! > - `500 INTERNAL SERVER ERROR` JWT generation error <br/>
+//! >
+//! > **Returns:** JWT Token, [AuthResponse](auth::AuthResponse)
+//!
+
 use axum::{Router, http::Method, routing};
 use tower_http::cors::{self, CorsLayer};
 use std::sync::LazyLock;
