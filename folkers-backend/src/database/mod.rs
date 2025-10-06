@@ -278,6 +278,15 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
         return result;
     }
 
+    pub async fn update_person(&self, id: impl AsRef<str>, person: person::CreatePersonRecord) -> Result<Option<person::PersonRecord>, surrealdb::Error> {
+        let updated_record = self.connection
+            .update((PERSON, id.as_ref()))
+            .merge(person)
+            .await;
+
+        updated_record
+    }
+
     /// Get Persons Records list
     pub async fn list_persons(&self) -> Result<Vec<person::PersonRecord>, surrealdb::Error> {
         let records = self.connection.select(PERSON).await;

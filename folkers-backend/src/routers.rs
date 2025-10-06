@@ -128,6 +128,42 @@ pub async fn persons_create_handler(
     return Ok(Json(person_record))
 }
 
+/// PATCH `/persons/{id}`
+pub async fn persons_patch_handler(
+    auth_user: middleware::AuthUser,
+    Path(id): Path<String>,
+    patched: Json<database::person::CreatePersonRecord>
+) -> Result<Json<database::person::PersonRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let person_record = DATABASE.get_person(&id).await;
+
+    match person_record {
+        Some(record) => {
+            // verifying if we have access
+
+            if auth_user.role < auth::user::UserRole::Admin && record.author.id.to_string() != auth_user.id {
+                return Err(StatusCode::FORBIDDEN);
+            }
+            
+            let _ = DATABASE.update_person(id, patched.0.clone()).await
+                .or_else(|err| {
+                    log::error!("`{} ({})` [PATCH /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
+                    Err(StatusCode::INTERNAL_SERVER_ERROR)
+                })?;
+
+            log::info!("`{} ({})` [PATCH /persons/{{id}}] updated `{} {} {}` -> `{} {} {}`", auth_user.username, auth_user.id, record.surname, record.name, record.patronymic, patched.surname, patched.name, patched.patronymic);
+
+            Ok(Json(record))
+        },
+        None => {
+            Err(StatusCode::NOT_FOUND)
+        }
+    }
+}
+
 // INFO: Admins Routers
 
 /// GET `/users`
