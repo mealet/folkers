@@ -75,6 +75,8 @@ DEFINE FIELD IF NOT EXISTS traits_bad ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS avatar ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS media ON TABLE {PERSON} TYPE array<string>;
 
+DEFINE FIELD IF NOT EXISTS author ON TABLE {PERSON} TYPE record<user>;
+
 DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS surname, name, patronymic UNIQUE;
 
 -- Functions
@@ -220,7 +222,8 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
     // Add new Person record
     pub async fn add_person(
         &self,
-        person: person::CreatePersonRecord
+        person: person::CreatePersonRecord,
+        author: impl AsRef<str>
     ) -> Result<Option<person::PersonRecord>, surrealdb::Error> {
         let created_record = self.connection
             .create(PERSON)
@@ -242,7 +245,9 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
                     traits_bad: person.traits_bad,
 
                     avatar: person.avatar,
-                    media: person.media
+                    media: person.media,
+
+                    author: format!("{}:{}", USER, author.as_ref()).parse().unwrap()
                 }
             ).await;
 

@@ -111,7 +111,7 @@ pub async fn persons_create_handler(
         return Err(StatusCode::FORBIDDEN);
     }
 
-    let option_record = DATABASE.add_person(new_record.0).await.or_else(|err| {
+    let option_record = DATABASE.add_person(new_record.0, &auth_user.id).await.or_else(|err| {
         log::error!("`{} ({})` [POST /persons/create] got database error: {}", auth_user.username, auth_user.id, err);
         Err(StatusCode::INTERNAL_SERVER_ERROR)
     })?;

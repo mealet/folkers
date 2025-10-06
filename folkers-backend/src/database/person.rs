@@ -28,7 +28,10 @@ pub struct PersonRecord {
 
     /// Optional strings of URLS to images list.
     /// String may start with `@/` which stands for self link.
-    pub media: Vec<String>
+    pub media: Vec<String>,
+
+    /// SurrealDB reference to `user` record.
+    pub author: Thing
 }
 
 /// JSON Payload to create new Person's record
