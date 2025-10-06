@@ -267,6 +267,7 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
         user_record
     }
 
+    /// Find person by search query
     pub async fn find_person(&self, search_query: impl AsRef<str>) -> Result<Vec<person::PersonRecord>, surrealdb::Error> {
         let search_query = search_query.as_ref().to_string();
         let mut query = self.connection
@@ -278,6 +279,7 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
         return result;
     }
 
+    /// Update person by SurrealDB Identifier
     pub async fn update_person(&self, id: impl AsRef<str>, person: person::CreatePersonRecord) -> Result<Option<person::PersonRecord>, surrealdb::Error> {
         let updated_record = self.connection
             .update((PERSON, id.as_ref()))
@@ -285,6 +287,19 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
             .await;
 
         updated_record
+    }
+
+    /// Delete person by SurrealDB Identifier
+    pub async fn delete_person(
+        &self,
+        id: impl AsRef<str>,
+    ) -> Result<Option<person::PersonRecord>, surrealdb::Error> {
+        let id = id.as_ref();
+        let deleted_record = self.connection
+            .delete((PERSON, id))
+            .await?;
+
+        Ok(deleted_record)
     }
 
     /// Get Persons Records list

@@ -84,7 +84,9 @@ async fn main() -> anyhow::Result<()> {
         .route("/media/{hash}", routing::get(routers::media_handler))
         .route("/persons", routing::get(routers::persons_handler))
         .route("/persons/create", routing::post(routers::persons_create_handler))
+        .route("/persons/{id}", routing::get(routers::persons_id_handler))
         .route("/persons/{id}", routing::patch(routers::persons_patch_handler))
+        .route("/persons/{id}", routing::delete(routers::persons_delete_handler))
         .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
 
     let admin_routers = Router::new()

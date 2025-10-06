@@ -77,6 +77,7 @@ pub async fn media_handler(
     uploads::get_photo(hash).await
 }
 
+/// GET `/persons`
 pub async fn persons_handler(
     auth_user: middleware::AuthUser,
     Json(payload): Json<Option<database::person::SearchPersonRecord>>
@@ -103,6 +104,21 @@ pub async fn persons_handler(
     return Ok(Json(records_list));
 }
 
+pub async fn persons_id_handler(
+    auth_user: middleware::AuthUser,
+    Path(id): Path<String>
+) -> Result<Json<database::person::PersonRecord>, StatusCode>  {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    match DATABASE.get_person(id).await {
+        Some(record) => Ok(Json(record)),
+        None => Err(StatusCode::NOT_FOUND)
+    }
+}
+
+/// POST `/persons/create`
 pub async fn persons_create_handler(
     auth_user: middleware::AuthUser,
     new_record: Json<database::person::CreatePersonRecord>
@@ -148,19 +164,43 @@ pub async fn persons_patch_handler(
                 return Err(StatusCode::FORBIDDEN);
             }
             
-            let _ = DATABASE.update_person(id, patched.0.clone()).await
+            let record = DATABASE.update_person(id, patched.0.clone()).await
                 .or_else(|err| {
                     log::error!("`{} ({})` [PATCH /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
                     Err(StatusCode::INTERNAL_SERVER_ERROR)
-                })?;
+                })?.unwrap_or(record);
 
             log::info!("`{} ({})` [PATCH /persons/{{id}}] updated `{} {} {}` -> `{} {} {}`", auth_user.username, auth_user.id, record.surname, record.name, record.patronymic, patched.surname, patched.name, patched.patronymic);
 
             Ok(Json(record))
         },
-        None => {
-            Err(StatusCode::NOT_FOUND)
-        }
+        None => Err(StatusCode::NOT_FOUND)
+    }
+}
+
+/// DELETE `/persons/{id}`
+pub async fn persons_delete_handler(
+    auth_user: middleware::AuthUser,
+    Path(id): Path<String>
+) -> Result<Json<database::person::PersonRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let person_record = DATABASE.get_person(&id).await;
+
+    match person_record {
+        Some(record) => {
+            let _ = DATABASE.delete_person(id).await.or_else(|err| {
+                    log::error!("`{} ({})` [DELETE /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
+                    Err(StatusCode::INTERNAL_SERVER_ERROR)
+            });
+
+            log::info!("`{} ({})` [DELETE /persons/{{id}}] deleted `{} {} {}`", auth_user.username, auth_user.id, record.surname, record.name, record.patronymic);
+
+            Ok(Json(record))
+        },
+        None => Err(StatusCode::NOT_FOUND)
     }
 }
 
