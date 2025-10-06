@@ -4,6 +4,7 @@ use std::sync::LazyLock;
 
 mod auth;
 mod routers;
+mod uploads;
 mod middleware;
 mod database;
 
@@ -46,6 +47,11 @@ async fn main() -> anyhow::Result<()> {
 
     DATABASE.setup(&db_endpoint, &db_namespace, &db_database, &db_username, &db_password).await?;
 
+    // Uploads Setup
+
+    log::info!("- Setting up uploads...");
+    uploads::init_uploads().await?;
+
     // HTTP Cors
     let cors = CorsLayer::new()
         .allow_origin(cors::Any)
@@ -74,6 +80,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/login", routing::post(routers::login_handler));
 
     let editors_routers= Router::new()
+        .route("/upload", routing::post(routers::upload_handler))
         .route("/persons", routing::get(routers::persons_handler))
         .route("/persons/create", routing::post(routers::persons_create_handler))
         .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));

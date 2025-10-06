@@ -1,13 +1,13 @@
 use axum::{
     Json,
-    extract::{State, Path},
+    extract::{State, Path, Multipart},
     http::StatusCode,
     response::{IntoResponse, Html},
 };
 
 use super::{
     DATABASE,
-    auth, middleware, database
+    auth, middleware, database, uploads
 };
 
 #[derive(Clone)]
@@ -50,6 +50,21 @@ pub async fn login_handler(
 }
 
 // INFO: Editors Routers
+
+pub async fn upload_handler(
+    auth_user: middleware::AuthUser,
+    multipart: Multipart
+) -> Result<Json<String>, (StatusCode, String)> {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err((StatusCode::FORBIDDEN, "Not enough permissions".to_string()));
+    }
+
+    let result = uploads::upload_photo(multipart).await?;
+
+    log::info!("`{} ({})` uploaded photo with hash: '{}'", auth_user.username, auth_user.id, result.0);
+
+    Ok(result)
+}
 
 pub async fn persons_handler(
     auth_user: middleware::AuthUser,
