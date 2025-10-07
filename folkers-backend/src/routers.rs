@@ -26,6 +26,11 @@ pub async fn root_handler() -> impl IntoResponse {
     )
 }
 
+/// GET `/health`
+pub async fn health_handler() -> impl IntoResponse {
+    StatusCode::OK
+}
+
 /// POST `/login`
 pub async fn login_handler(
     State(state): State<AppState>,

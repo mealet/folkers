@@ -33,9 +33,11 @@
 //! **- JWT Token is expired**
 //!
 //! ----
-//!
 //! - ### GET `/` <br/>
 //! > **Returns:** HTML markup with message
+//! ----
+//! - ### GET `/health` <br/>
+//! > **Returns:** `200 OK`
 //! ----
 //! - ### POST `/login` <br/>
 //! > **Payload:** [LoginRequest](auth::LoginRequest) <br/>
@@ -232,6 +234,7 @@ async fn main() -> anyhow::Result<()> {
 
     let public_routers = Router::new()
         .route("/", routing::get(routers::root_handler))
+        .route("/health", routing::get(routers::health_handler))
         .route("/login", routing::post(routers::login_handler));
 
     let editors_routers= Router::new()
