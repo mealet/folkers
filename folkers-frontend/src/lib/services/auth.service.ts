@@ -1,0 +1,20 @@
+import { api } from '$lib/api/client';
+import { setToken, loggedUser } from '$lib/stores/auth';
+import { type AuthResponse, type LoginCredentials, type User } from '$lib/types/auth';
+import { get } from 'svelte/store';
+
+export class AuthService {
+  static async login(credentials: LoginCredentials): Promise<User> {
+    const response = await api.post<AuthResponse>('/login', credentials);
+
+    setToken(response.token);
+
+    const logged_user = get(loggedUser);
+
+    if (logged_user) {
+      return logged_user;
+    }
+
+    throw new Error('Error loading logged user data');
+  }
+}

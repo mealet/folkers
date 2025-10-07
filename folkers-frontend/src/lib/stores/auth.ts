@@ -3,15 +3,16 @@ import { browser } from '$app/environment';
 import type { User } from '$lib/types/auth';
 
 interface TokenPayload {
-  [sub: string]: unknown;
   exp: number;
-  user?: User;
+  sub: string;
+  username: string;
+  role: string;
 }
 
 const accessTokenStorage = 'access_token';
 
 export const isAuthenticated = writable<boolean>(false);
-export const user = writable<User | null>(null);
+export const loggedUser = writable<User | null>(null);
 export const isLoading = writable<boolean>(true);
 
 export function isTokenExpired(token: string | null): boolean {
@@ -38,14 +39,16 @@ export function getTokenData(token: string | null): TokenPayload | null {
 }
 
 export function setToken(token: string): void {
-  if (browser) {
-    localStorage.setItem(accessTokenStorage, token);
-    isAuthenticated.set(true);
+  localStorage.setItem(accessTokenStorage, token);
+  isAuthenticated.set(true);
 
-    const tokenData = getTokenData(token);
-    if (tokenData?.user) {
-      user.set(tokenData.user);
-    }
+  const tokenData = getTokenData(token);
+
+  if (tokenData) {
+    loggedUser.set({
+      username: tokenData.username,
+      role: tokenData.role
+    });
   }
 }
 
@@ -57,11 +60,9 @@ export function getToken(): string | null {
 }
 
 export function clearAuth(): void {
-  if (browser) {
-    localStorage.removeItem(accessTokenStorage);
-    isAuthenticated.set(false);
-    user.set(null);
-  }
+  localStorage.removeItem(accessTokenStorage);
+  isAuthenticated.set(false);
+  loggedUser.set(null);
 }
 
 export function logout(): void {
@@ -84,6 +85,17 @@ export function initializeAuth(): void {
 
     if (token) {
       isAuthenticated.set(true);
+
+      const token_data = getTokenData(token);
+
+      if (token_data) {
+        const logged_user: User = {
+          username: token_data.username,
+          role: token_data.role
+        };
+
+        loggedUser.set(logged_user);
+      }
     } else {
       clearAuth();
     }

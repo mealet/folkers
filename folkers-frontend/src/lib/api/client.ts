@@ -1,11 +1,6 @@
-import { getToken, setToken, handleTokenExpired } from '$lib/stores/auth';
-import { AuthResponse, ApiErrorResponse } from '$lib/types/auth';
+import { getToken, handleTokenExpired } from '$lib/stores/auth';
 
 const API_ENDPOINT = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3000';
-
-interface RequestOptions extends RequestInit {
-  headers?: Record<string, string>;
-}
 
 class ApiClientError extends Error {
   constructor(
@@ -44,7 +39,7 @@ class ApiClient {
     const response = await fetch(url, config);
 
     if (response.status === 401) {
-      handleTokenExpired();
+      // handleTokenExpired();
       throw new ApiClientError('Authentication required', 401);
     }
 

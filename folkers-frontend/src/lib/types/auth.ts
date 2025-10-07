@@ -1,13 +1,6 @@
-export enum UserRole {
-  Watcher = 'watcher',
-  Editor = 'Editor',
-  Admin = 'Admin'
-}
-
 export interface User {
-  id: string;
   username: string;
-  role: UserRole;
+  role: string;
 }
 
 export interface LoginCredentials {
@@ -16,8 +9,8 @@ export interface LoginCredentials {
 }
 
 export interface AuthResponse {
-  user: User;
-  access_token: string;
+  token: string;
+  token_type: string;
 }
 
 export interface ApiResponse<T> {
