@@ -17,6 +17,6 @@
 	}
 </script>
 
-<h1>Welcome back, {user?.username}</h1>
-<br />
-<button on:click|preventDefault={handleLogout}>Logout</button>
+<div>
+	<h1>Welcome back, {user?.username}</h1>
+</div>
