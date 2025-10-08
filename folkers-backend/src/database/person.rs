@@ -62,6 +62,7 @@ pub struct CreatePersonRecord {
 /// Possible options for query:
 /// `name surname patronymic`, `name patronymic`, `name surname`, `surname patronymic` and etc.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(unused)]
 pub struct SearchPersonRecord {
     /// Optional string that can contains `name`, `surname`, `patronymic`
     pub search_query: String
