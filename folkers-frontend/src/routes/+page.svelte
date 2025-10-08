@@ -1,22 +1,29 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { requireAuth } from '$lib/guards/auth.guard';
-	import { loggedUser, logout } from '$lib/stores/auth';
-	import { invalidateAll } from '$app/navigation';
+	import { PersonService } from '$lib/services/person.service';
+	import type { PersonRecord } from '$lib/types/person';
+	// import { loggedUser } from '$lib/stores/auth';
 
-	$: user = $loggedUser;
+	let persons: PersonRecord[] = [];
 
-	onMount(() => {
+	onMount(async () => {
 		requireAuth();
+		persons = await PersonService.list_persons();
 	});
 
-	async function handleLogout(): Promise<void> {
-		logout();
-
-		await invalidateAll();
-	}
+	// let user = $loggedUser;
 </script>
 
 <div>
-	<h1>Welcome back, {user?.username}</h1>
+	<h3>List of persons:</h3>
+	<ul>
+		{#each persons as person (person.id)}
+			<li>
+				- <a href="/persons/{person.id.id.String}"
+					>{person.surname} {person.name} {person.patronymic}</a
+				>
+			</li>
+		{/each}
+	</ul>
 </div>

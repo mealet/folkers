@@ -1,7 +1,7 @@
 import { api } from '$lib/api/client';
+import { get } from 'svelte/store';
 import { setToken, loggedUser } from '$lib/stores/auth';
 import { type AuthResponse, type LoginCredentials, type User } from '$lib/types/auth';
-import { get } from 'svelte/store';
 
 export class AuthService {
   static async login(credentials: LoginCredentials): Promise<User> {
