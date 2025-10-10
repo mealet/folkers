@@ -56,6 +56,7 @@ pub async fn login_handler(
 
 /// INFO: Watchers Routers
 
+/// GET `/me`
 pub async fn me_handler(
     auth_user: middleware::AuthUser
 ) -> Result<Json<database::user::UserRecord>, StatusCode> {

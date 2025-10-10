@@ -14,7 +14,7 @@ pub async fn auth_middleware(
 ) -> Result<Response, StatusCode> {
 
     let token = extract_token_from_headers(request.headers())
-        .ok_or(StatusCode::UNAUTHORIZED)?;
+        .ok_or(StatusCode::BAD_REQUEST)?;
 
     let claims = app_state.jwt_service.verify_token(&token).map_err(|_| {
         StatusCode::UNAUTHORIZED
