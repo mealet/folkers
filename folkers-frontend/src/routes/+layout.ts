@@ -1,20 +1,19 @@
-import { browser } from '$app/environment';
-import { getToken } from '$lib/stores/auth';
-import { redirect } from '@sveltejs/kit';
+import type { LayoutLoad } from './$types';
+import { authGuard } from '$lib/guards/auth.guard';
+import { initializeAuth } from '$lib/stores/auth';
 
-export function load({ url }) {
-  if (browser) {
-    const token: string | null = getToken();
-    const pathname = url.pathname;
+export const load: LayoutLoad = async ({ url }) => {
+	const loginEndpoint = '/login';
 
-    if (token === null && pathname !== '/login') {
-      throw redirect(302, '/login');
-    }
+	if (url.pathname === loginEndpoint) return;
 
-    if (token !== null && pathname === '/login') {
-      throw redirect(302, '/');
-    }
-  }
+	if (typeof window !== 'undefined') {
+		const ok = await authGuard();
 
-  return {};
-}
+		if (!ok) {
+			window.location.href = '/login';
+		}
+
+		await initializeAuth();
+	}
+};

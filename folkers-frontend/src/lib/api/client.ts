@@ -1,83 +1,104 @@
-import { getToken, handleTokenExpired } from '$lib/stores/auth';
+import { getToken } from '$lib/stores/auth';
 
-const API_ENDPOINT = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3000';
+export const API_ENDPOINT =
+	process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3000';
 
 class ApiClientError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public code?: string
-  ) {
-    super(message);
-    this.name = 'ApiClientError';
-  }
+	constructor(
+		message: string,
+		public status?: number,
+		public code?: string
+	) {
+		super(message);
+		this.name = 'ApiClientError';
+	}
 }
 
 class ApiClient {
-  private baseUrl: string;
+	private baseUrl: string;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
+	constructor(baseUrl: string) {
+		this.baseUrl = baseUrl;
+	}
 
-  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = getToken();
-    const url = `${this.baseUrl}${endpoint}`;
+	async fetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
+		const token = getToken();
+		const url = `${this.baseUrl}${endpoint}`;
 
-    const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
-    };
+		const config: RequestInit = {
+			headers: {
+				'Content-Type': 'application/json',
+				...options.headers
+			},
+			...options
+		};
 
-    if (token) {
-      (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
-    }
+		if (token) {
+			(config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+		}
 
-    const response = await fetch(url, config);
+		return await fetch(url, config);
+	}
 
-    if (response.status === 401) {
-      // handleTokenExpired();
-      throw new ApiClientError('Authentication required', 401);
-    }
+	async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+		const token = getToken();
+		const url = `${this.baseUrl}${endpoint}`;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+		const config: RequestInit = {
+			headers: {
+				'Content-Type': 'application/json',
+				...options.headers
+			},
+			...options
+		};
 
-      throw new ApiClientError(
-        errorData.message || `HTTP Error ${response.status}`,
-        response.status
-      );
-    }
+		if (token) {
+			(config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+		}
 
-    return (await response.json()) as T;
-  }
+		const response = await fetch(url, config);
 
-  async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    return this.request(endpoint, { ...options, method: 'GET' });
-  }
+		if (response.status === 401) {
+			// handleTokenExpired();
+			throw new ApiClientError('Authentication required', 401);
+		}
 
-  async post<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined
-    });
-  }
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
 
-  async patch<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined
-    });
-  }
+			throw new ApiClientError(
+				errorData.message || `HTTP Error ${response.status}`,
+				response.status,
+				errorData.code
+			);
+		}
 
-  async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
-  }
+		return (await response.json()) as T;
+	}
+
+	async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+		return this.request(endpoint, { ...options, method: 'GET' });
+	}
+
+	async post<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'POST',
+			body: data ? JSON.stringify(data) : undefined
+		});
+	}
+
+	async patch<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'PATCH',
+			body: data ? JSON.stringify(data) : undefined
+		});
+	}
+
+	async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+		return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+	}
 }
 
 export const api = new ApiClient(API_ENDPOINT);

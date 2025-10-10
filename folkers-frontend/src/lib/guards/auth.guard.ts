@@ -1,18 +1,29 @@
 import { getToken } from '$lib/stores/auth';
-import { redirect } from '@sveltejs/kit';
+import { api } from '$lib/api/client';
 
-export function requireAuth(): void {
-  const token = getToken();
+export async function authGuard(): Promise<boolean> {
+	try {
+		const token = getToken();
 
-  if (!token) {
-    throw redirect(302, '/login');
-  }
-}
+		if (!token) {
+			return false;
+		}
 
-export function requireGuest(): void {
-  const token = getToken();
+		// const response = await fetch(`${API_ENDPOINT}/me`, {
+		// 	method: 'GET',
+		// 	headers: {
+		// 		Authorization: `Bearer ${token}`
+		// 	}
+		// });
+		//
+		// if (!response.ok) {
+		// 	return false;
+		// }
 
-  if (token) {
-    throw redirect(302, '/');
-  }
+		await api.get('/me');
+	} catch {
+		return false;
+	}
+
+	return true;
 }

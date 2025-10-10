@@ -2,13 +2,8 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 
-	import { onMount } from 'svelte';
-	import { initializeAuth, isAuthenticated, loggedUser, logout } from '$lib/stores/auth';
+	import { isAuthenticated, loggedUser, logout } from '$lib/stores/auth';
 	import { invalidateAll } from '$app/navigation';
-
-	onMount(() => {
-		initializeAuth();
-	});
 
 	let { children } = $props();
 
@@ -28,7 +23,7 @@
 </svelte:head>
 
 <div>
-	{#if $authenticated}
+	{#if $authenticated && $user}
 		<div class="flex gap-8">
 			<h2>
 				{$user.username} ({$user.role})

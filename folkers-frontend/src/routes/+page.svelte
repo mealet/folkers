@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { requireAuth } from '$lib/guards/auth.guard';
+	import { authGuard } from '$lib/guards/auth.guard';
 	import { PersonService } from '$lib/services/person.service';
 	import type { PersonRecord } from '$lib/types/person';
 	// import { loggedUser } from '$lib/stores/auth';
@@ -8,7 +8,6 @@
 	let persons: PersonRecord[] = [];
 
 	onMount(async () => {
-		requireAuth();
 		persons = await PersonService.list_persons();
 	});
 

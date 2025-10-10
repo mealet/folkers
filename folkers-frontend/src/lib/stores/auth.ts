@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { User } from '$lib/types/auth';
+import { api } from '$lib/api/client';
 
 interface TokenPayload {
   exp: number;
@@ -79,22 +80,27 @@ export function handleTokenExpired(): void {
   }
 }
 
-export function initializeAuth(): void {
+export async function initializeAuth(): Promise<void> {
   if (browser) {
     const token = getToken();
 
     if (token) {
-      isAuthenticated.set(true);
+      try {
+        await api.get('/me');
+        isAuthenticated.set(true);
 
-      const token_data = getTokenData(token);
+        const token_data = getTokenData(token);
 
-      if (token_data) {
-        const logged_user: User = {
-          username: token_data.username,
-          role: token_data.role
-        };
+        if (token_data) {
+          const logged_user: User = {
+            username: token_data.username,
+            role: token_data.role
+          };
 
-        loggedUser.set(logged_user);
+          loggedUser.set(logged_user);
+        }
+      } catch (error) {
+        console.error('Auth initialization error: ', error);
       }
     } else {
       clearAuth();
