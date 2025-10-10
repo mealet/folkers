@@ -237,12 +237,16 @@ async fn main() -> anyhow::Result<()> {
         .route("/health", routing::get(routers::health_handler))
         .route("/login", routing::post(routers::login_handler));
 
-    let editors_routers= Router::new()
-        .route("/upload", routing::post(routers::upload_handler))
+    let watchers_routers = Router::new()
+        .route("/me", routing::get(routers::me_handler))
         .route("/media/{hash}", routing::get(routers::media_handler))
         .route("/persons", routing::get(routers::persons_handler))
-        .route("/persons/create", routing::post(routers::persons_create_handler))
         .route("/persons/{id}", routing::get(routers::persons_id_handler))
+        .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
+
+    let editors_routers = Router::new()
+        .route("/upload", routing::post(routers::upload_handler))
+        .route("/persons/create", routing::post(routers::persons_create_handler))
         .route("/persons/{id}", routing::patch(routers::persons_patch_handler))
         .route("/persons/{id}", routing::delete(routers::persons_delete_handler))
         .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
@@ -257,6 +261,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .merge(public_routers)
+        .merge(watchers_routers)
         .merge(editors_routers)
         .merge(admin_routers)
         .with_state(app_state)

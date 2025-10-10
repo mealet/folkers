@@ -36,7 +36,7 @@ pub async fn login_handler(
     State(state): State<AppState>,
     Json(payload): Json<auth::LoginRequest>
 ) -> Result<Json<auth::AuthResponse>, StatusCode> {
-    let user = state.user_repo.find_by_username(&payload.username).await.ok_or(StatusCode::UNAUTHORIZED)?;
+    let user = state.user_repo.find_by_username(&payload.username).await.ok_or(StatusCode::NOT_FOUND)?;
 
     if !state.user_repo.verify_password(&payload.username, &payload.password).await {
         return Err(StatusCode::UNAUTHORIZED);
@@ -54,32 +54,17 @@ pub async fn login_handler(
     }))
 }
 
-// INFO: Editors Routers
+/// INFO: Watchers Routers
 
-pub async fn upload_handler(
-    auth_user: middleware::AuthUser,
-    multipart: Multipart
-) -> Result<Json<String>, (StatusCode, String)> {
-    if auth_user.role < auth::user::UserRole::Editor {
-        return Err((StatusCode::FORBIDDEN, "Not enough permissions".to_string()));
+pub async fn me_handler(
+    auth_user: middleware::AuthUser
+) -> Result<Json<database::user::UserRecord>, StatusCode> {
+    let user = DATABASE.get_user(auth_user.id).await;   
+
+    match user {
+        Some(record) => Ok(Json(record)),
+        None => Err(StatusCode::NOT_FOUND)
     }
-
-    let result = uploads::upload_photo(multipart).await?;
-
-    log::info!("`{} ({})` uploaded photo with hash: '{}'", auth_user.username, auth_user.id, result.0);
-
-    Ok(result)
-}
-
-pub async fn media_handler(
-    auth_user: middleware::AuthUser,
-    Path(hash): Path<String>
-) -> impl IntoResponse {
-    if auth_user.role < auth::user::UserRole::Editor {
-        return Err((StatusCode::FORBIDDEN, "Not enough permissions".to_string()));
-    }
-
-    uploads::get_photo(hash).await
 }
 
 /// GET `/persons`
@@ -87,7 +72,7 @@ pub async fn persons_handler(
     auth_user: middleware::AuthUser,
     // Json(payload): Json<Option<database::person::SearchPersonRecord>>
 ) -> Result<Json<Vec<database::person::PersonRecord>>, StatusCode> {
-    if auth_user.role < auth::user::UserRole::Editor {
+    if auth_user.role < auth::user::UserRole::Watcher {
         return Err(StatusCode::FORBIDDEN);
     }
 
@@ -119,7 +104,7 @@ pub async fn persons_id_handler(
     auth_user: middleware::AuthUser,
     Path(id): Path<String>
 ) -> Result<Json<database::person::PersonRecord>, StatusCode>  {
-    if auth_user.role < auth::user::UserRole::Editor {
+    if auth_user.role < auth::user::UserRole::Watcher {
         return Err(StatusCode::FORBIDDEN);
     }
 
@@ -127,6 +112,34 @@ pub async fn persons_id_handler(
         Some(record) => Ok(Json(record)),
         None => Err(StatusCode::NOT_FOUND)
     }
+}
+
+pub async fn media_handler(
+    auth_user: middleware::AuthUser,
+    Path(hash): Path<String>
+) -> impl IntoResponse {
+    if auth_user.role < auth::user::UserRole::Watcher {
+        return Err((StatusCode::FORBIDDEN, "Not enough permissions".to_string()));
+    }
+
+    uploads::get_photo(hash).await
+}
+
+// INFO: Editors Routers
+
+pub async fn upload_handler(
+    auth_user: middleware::AuthUser,
+    multipart: Multipart
+) -> Result<Json<String>, (StatusCode, String)> {
+    if auth_user.role < auth::user::UserRole::Editor {
+        return Err((StatusCode::FORBIDDEN, "Not enough permissions".to_string()));
+    }
+
+    let result = uploads::upload_photo(multipart).await?;
+
+    log::info!("`{} ({})` uploaded photo with hash: '{}'", auth_user.username, auth_user.id, result.0);
+
+    Ok(result)
 }
 
 /// POST `/persons/create`
