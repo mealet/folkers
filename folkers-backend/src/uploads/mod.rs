@@ -12,7 +12,7 @@ static UPLOADS_DIR: LazyLock<String> = LazyLock::new(|| {
     if let Ok(upload_dir) = std::env::var("FOLKERS_UPLOADS_DIR") {
         upload_dir
     } else {
-        log::warn!("Environment variable `UPLOADS_DIR` is not found, default is `./uploads`");
+        log::warn!("Environment variable `FOLKERS_UPLOADS_DIR` is not found, default is `./uploads`");
         String::from("./uploads")
     }
 });
