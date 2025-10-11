@@ -78,7 +78,7 @@ DEFINE FIELD IF NOT EXISTS media ON TABLE {PERSON} TYPE array<string>;
 
 DEFINE FIELD IF NOT EXISTS author ON TABLE {PERSON} TYPE record<user>;
 
-DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS surname, name, patronymic UNIQUE;
+--- DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS surname, name, patronymic UNIQUE;
 
 -- Functions
 
