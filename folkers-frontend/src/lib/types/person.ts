@@ -26,7 +26,7 @@ export interface CreatePersonRecord {
   surname: string;
   patronymic: string;
 
-  birthday: Date;
+  birthday: string;
   city: string;
   intented_address: string;
 

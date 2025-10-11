@@ -76,6 +76,42 @@ class ApiClient {
 		return (await response.json()) as T;
 	}
 
+	async upload(file: File, fieldName = 'photo'): Promise<string> {
+		const token = getToken();
+		const url = `${this.baseUrl}/upload`;
+
+		const formData = new FormData();
+		formData.append(fieldName, file);
+
+		const headers: Record<string, string> = {};
+
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
+		}
+
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: headers,
+			body: formData
+		});
+
+		if (response.status === 401) {
+			throw new ApiClientError('Authentication required', 401);
+		}
+
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+
+			throw new ApiClientError(
+				errorData.message || `HTTP Error ${response.status}`,
+				response.status,
+				errorData.code
+			);
+		}
+
+		return await response.json();
+	}
+
 	async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 		return this.request(endpoint, { ...options, method: 'GET' });
 	}
