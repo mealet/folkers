@@ -13,6 +13,8 @@
 	let summaryRendered: string = '';
 	let pastRendered: string = '';
 
+	const MEDIA_PREFIX = '@/';
+
 	let avatarURL: string = '';
 	const AVATAR_WIDTH = '256px';
 	const AVATAR_HEIGHT = '256px';
@@ -30,23 +32,33 @@
 		const pastRenderResult = await compile(person.summary);
 		pastRendered = pastRenderResult?.code || person.summary;
 
-		try {
-			const avatarResponse = await api.fetch(`/media/${person.avatar}`);
-			const blob = await avatarResponse.blob();
+		if (person.avatar && person.avatar.startsWith(MEDIA_PREFIX)) {
+			try {
+				const rawHash: string = person.avatar.slice(MEDIA_PREFIX.length);
+				const avatarResponse = await api.fetch(`/media/${rawHash}`);
+				const blob = await avatarResponse.blob();
 
-			avatarURL = URL.createObjectURL(blob);
-		} catch (error) {
-			console.error('Error with loading avatar: ', error);
+				avatarURL = URL.createObjectURL(blob);
+			} catch (error) {
+				console.error('Error with loading avatar: ', error);
+			}
+		} else {
+			avatarURL = person.avatar || '';
 		}
 
 		person.media.forEach(async (mediaHash: string, index: number) => {
-			try {
-				const mediaResponse = await api.fetch(`/media/${mediaHash}`);
-				const blob = await mediaResponse.blob();
+			if (mediaHash.startsWith('@/')) {
+				try {
+					const rawHash: string = mediaHash.slice(MEDIA_PREFIX.length);
+					const mediaResponse = await api.fetch(`/media/${rawHash}`);
+					const blob = await mediaResponse.blob();
 
-				mediaURLs[index] = URL.createObjectURL(blob);
-			} catch (error) {
-				console.error('Error with loading avatar: ', error);
+					mediaURLs[index] = URL.createObjectURL(blob);
+				} catch (error) {
+					console.error('Error with loading avatar: ', error);
+				}
+			} else {
+				mediaURLs[index] = mediaHash;
 			}
 		});
 	});
