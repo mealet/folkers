@@ -20,3 +20,21 @@ export interface PersonRecord {
 
   author: SurrealThing;
 }
+
+export interface CreatePersonRecord {
+  name: string;
+  surname: string;
+  patronymic: string;
+
+  birthday: Date;
+  city: string;
+  intented_address: string;
+
+  summary: string;
+  past: string;
+  traits_good: string;
+  traits_bad: string;
+
+  avatar: string | null;
+  media: string[];
+}
