@@ -1,6 +1,6 @@
 import { api } from '$lib/api/client';
 import { get } from 'svelte/store';
-import { setToken, loggedUser } from '$lib/stores/auth';
+import { setToken, loggedUser, initializeAuth } from '$lib/stores/auth';
 import { type AuthResponse, type LoginCredentials, type User } from '$lib/types/auth';
 
 export class AuthService {
@@ -8,6 +8,7 @@ export class AuthService {
     const response = await api.post<AuthResponse>('/login', credentials);
 
     setToken(response.token);
+    await initializeAuth();
 
     const logged_user = get(loggedUser);
 

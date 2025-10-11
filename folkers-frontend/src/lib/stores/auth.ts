@@ -41,16 +41,6 @@ export function getTokenData(token: string | null): TokenPayload | null {
 
 export function setToken(token: string): void {
   localStorage.setItem(accessTokenStorage, token);
-  isAuthenticated.set(true);
-
-  const tokenData = getTokenData(token);
-
-  if (tokenData) {
-    loggedUser.set({
-      username: tokenData.username,
-      role: tokenData.role
-    });
-  }
 }
 
 export function getToken(): string | null {
@@ -86,19 +76,9 @@ export async function initializeAuth(): Promise<void> {
 
     if (token) {
       try {
-        await api.get('/me');
+        const response = await api.get<User>('/me');
         isAuthenticated.set(true);
-
-        const token_data = getTokenData(token);
-
-        if (token_data) {
-          const logged_user: User = {
-            username: token_data.username,
-            role: token_data.role
-          };
-
-          loggedUser.set(logged_user);
-        }
+        loggedUser.set(response);
       } catch (error) {
         console.error('Auth initialization error: ', error);
       }

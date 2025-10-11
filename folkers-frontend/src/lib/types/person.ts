@@ -1,9 +1,4 @@
-interface SurrealThing {
-  tb: string;
-  id: {
-    String: string;
-  };
-}
+import type { SurrealThing } from './surreal';
 
 export interface PersonRecord {
   id: SurrealThing;

@@ -26,7 +26,7 @@
 	{#if $authenticated && $user}
 		<div class="flex gap-8">
 			<h2>
-				{$user.username} ({$user.role})
+				{$user.username} ({$user.id.id.String}) | {$user.role}
 			</h2>
 			<button onclick={handleLogout}> Logout </button>
 		</div>
