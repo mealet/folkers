@@ -12,15 +12,3 @@ export interface AuthResponse {
   token: string;
   token_type: string;
 }
-
-export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  success: boolean;
-}
-
-export interface ApiErrorResponse {
-  message: string;
-  code?: string;
-  status?: string;
-}
