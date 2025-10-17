@@ -6,14 +6,13 @@
 	import { api } from '$lib/api/client';
 
 	import { compile } from 'mdsvex';
+	import { MediaService } from '$lib/services/media.service';
 
 	const personId = page.params.id;
 
 	let person: PersonRecord | null = null;
 	let summaryRendered: string = '';
 	let pastRendered: string = '';
-
-	const MEDIA_PREFIX = '@/';
 
 	let avatarURL: string = '';
 	const AVATAR_WIDTH = '256px';
@@ -32,33 +31,19 @@
 		const pastRenderResult = await compile(person.summary);
 		pastRendered = pastRenderResult?.code || person.summary;
 
-		if (person.avatar && person.avatar.startsWith(MEDIA_PREFIX)) {
+		if (person.avatar) {
 			try {
-				const rawHash: string = person.avatar.slice(MEDIA_PREFIX.length);
-				const avatarResponse = await api.fetch(`/media/${rawHash}`);
-				const blob = await avatarResponse.blob();
-
-				avatarURL = URL.createObjectURL(blob);
+				avatarURL = await MediaService.get(person.avatar);
 			} catch (error) {
-				console.error('Error with loading avatar: ', error);
+				console.error('Avatar fetch error: ', error);
 			}
-		} else {
-			avatarURL = person.avatar || '';
 		}
 
 		person.media.forEach(async (mediaHash: string, index: number) => {
-			if (mediaHash.startsWith('@/')) {
-				try {
-					const rawHash: string = mediaHash.slice(MEDIA_PREFIX.length);
-					const mediaResponse = await api.fetch(`/media/${rawHash}`);
-					const blob = await mediaResponse.blob();
-
-					mediaURLs[index] = URL.createObjectURL(blob);
-				} catch (error) {
-					console.error('Error with loading avatar: ', error);
-				}
-			} else {
-				mediaURLs[index] = mediaHash;
+			try {
+				mediaURLs[index] = await MediaService.get(mediaHash);
+			} catch (error) {
+				console.error('Media fetch error: ', error);
 			}
 		});
 	});

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { api } from '$lib/api/client';
-	import type { CreatePersonRecord, PersonRecord } from '$lib/types/person';
+	import { MediaService } from '$lib/services/media.service';
+	import { PersonService } from '$lib/services/person.service';
+	import type { CreatePersonRecord } from '$lib/types/person';
 
 	const ACCEPTABLE_MEDIA_TYPES = 'image/jpeg, image/png, image/gif, image/webp';
 
@@ -43,8 +45,7 @@
 		// Uploading avatar
 		if (avatarFile) {
 			try {
-				const hash = await api.upload(avatarFile[0]);
-				payload.avatar = `@/${hash.trim()}`;
+				payload.avatar = await MediaService.upload(avatarFile[0]);
 			} catch (error) {
 				console.error(error);
 				payload.avatar = 'NONE';
@@ -59,8 +60,8 @@
 		if (mediaFiles) {
 			for (const mediaFile of mediaFiles) {
 				try {
-					const hash = await api.upload(mediaFile);
-					payloadMedia.push(`@/${hash.trim()}`);
+					const hash = await MediaService.upload(mediaFile);
+					payloadMedia.push(hash);
 				} catch (error) {
 					console.error('Error Uploading Media: ', error);
 				}
@@ -77,7 +78,7 @@
 		// Sending request
 
 		try {
-			const new_person = await api.post<PersonRecord>('/persons/create', payload);
+			const new_person = await PersonService.create_person(payload);
 
 			window.location.href = `/persons/${new_person.id.id.String}`;
 		} catch (error) {

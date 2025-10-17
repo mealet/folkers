@@ -1,5 +1,5 @@
 import { api } from '$lib/api/client';
-import type { PersonRecord } from '$lib/types/person';
+import type { CreatePersonRecord, PersonRecord } from '$lib/types/person';
 
 export class PersonService {
   static async list_persons(): Promise<PersonRecord[]> {
@@ -8,5 +8,9 @@ export class PersonService {
 
   static async get_person(id: string): Promise<PersonRecord> {
     return await api.get<PersonRecord>(`/persons/${id}`);
+  }
+
+  static async create_person(payload: CreatePersonRecord): Promise<PersonRecord> {
+    return await api.post<PersonRecord>('/persons/create', payload);
   }
 }
