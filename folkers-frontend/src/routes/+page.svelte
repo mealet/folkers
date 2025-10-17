@@ -4,6 +4,9 @@
 	import type { PersonRecord } from '$lib/types/person';
 	import Fuse from 'fuse.js';
 
+	import Protected from '$lib/components/protected.svelte';
+	import { ADMIN_ROLE, EDITOR_ROLE } from '$lib';
+
 	let persons: PersonRecord[] = [];
 
 	let query = '';
@@ -29,12 +32,14 @@
 </script>
 
 <div class="p-2">
-	<a href="/persons/create"
-		><button type="submit" class="border-1 border-black p-1">Создать</button></a
-	>
+	<Protected requiredRoles={[EDITOR_ROLE]} adminRoles={[ADMIN_ROLE]}>
+		<a href="/persons/create"
+			><button type="submit" class="border-1 border-black p-1">Создать</button></a
+		>
 
-	<br />
-	<br />
+		<br />
+		<br />
+	</Protected>
 
 	<input type="text" bind:value={query} placeholder="Поиск..." class="rounded border p-2" />
 
