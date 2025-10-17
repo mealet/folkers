@@ -152,6 +152,14 @@ pub async fn persons_create_handler(
         return Err(StatusCode::FORBIDDEN);
     }
 
+    // unique record verification
+    if !DATABASE.find_person(format!("{} {} {}", new_record.surname, new_record.name, new_record.patronymic)).await.or_else(|err| {
+        log::error!("`{} ({})` [POST /persons/create] got database verification error: {}", auth_user.username, auth_user.id, err);
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    })?.is_empty() {
+        return Err(StatusCode::CONFLICT);
+    }
+
     let option_record = DATABASE.add_person(new_record.0, &auth_user.id).await.or_else(|err| {
         log::error!("`{} ({})` [POST /persons/create] got database error: {}", auth_user.username, auth_user.id, err);
         Err(StatusCode::INTERNAL_SERVER_ERROR)

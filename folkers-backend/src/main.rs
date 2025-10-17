@@ -78,6 +78,7 @@
 //! > **Payload:** [CreatePersonRecord](database::person::CreatePersonRecord) <br/>
 //! > **Errors:** <br/>
 //! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `409 CONFLICT` Unique record already exists <br/>
 //! > - `500 INTERNAL SERVER ERROR` Database error <br/>
 //! >
 //! > **Returns:** [PersonRecord](database::person::PersonRecord)
