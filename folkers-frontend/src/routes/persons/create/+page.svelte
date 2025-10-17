@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { api } from '$lib/api/client';
+	import { ApiClientError } from '$lib/api/error';
 	import { MediaService } from '$lib/services/media.service';
 	import { PersonService } from '$lib/services/person.service';
 	import type { CreatePersonRecord } from '$lib/types/person';
 
 	const ACCEPTABLE_MEDIA_TYPES = 'image/jpeg, image/png, image/gif, image/webp';
+
+	let errorMessage = '';
 
 	let avatarFile: FileList | null = null;
 	let avatarURL: string = '';
@@ -82,12 +84,20 @@
 
 			window.location.href = `/persons/${new_person.id.id.String}`;
 		} catch (error) {
-			console.error('API Error:', error);
+			if (error instanceof ApiClientError) {
+				errorMessage = `Ошибка: ${error.describe()}`;
+			} else {
+				errorMessage = `Неизвестная ошибка: ${error}`;
+			}
 		}
 	}
 </script>
 
 <form on:submit|preventDefault={handleForm} class="block p-5">
+	<p class="text-red-500">{errorMessage}</p>
+
+	<br />
+
 	<div class="flex gap-3">
 		<input
 			type="text"

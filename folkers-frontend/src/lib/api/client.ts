@@ -1,18 +1,8 @@
 import { getToken } from '$lib/stores/auth';
+import { ApiClientError } from './error';
 
 export const API_ENDPOINT =
 	process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3000';
-
-class ApiClientError extends Error {
-	constructor(
-		message: string,
-		public status?: number,
-		public code?: string
-	) {
-		super(message);
-		this.name = 'ApiClientError';
-	}
-}
 
 class ApiClient {
 	private baseUrl: string;
