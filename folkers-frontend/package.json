@@ -42,6 +42,12 @@
 		"onlyBuiltDependencies": [
 			"@tailwindcss/oxide",
 			"esbuild"
+		],
+		"ignoredBuiltDependencies": [
+			"@tailwindcss/oxide"
 		]
+	},
+	"dependencies": {
+		"fuse.js": "^7.1.0"
 	}
 }
