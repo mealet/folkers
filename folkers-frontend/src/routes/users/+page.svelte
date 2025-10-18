@@ -4,8 +4,13 @@
 	import type { User } from '$lib/types/auth';
 
 	import { onMount } from 'svelte';
+	import Fuse from 'fuse.js';
 
 	let users: User[] = [];
+
+	let query = '';
+	let results: User[] = [];
+	let fuse = Fuse<User>;
 
 	onMount(async () => {
 		users = await UserService.list_users();
@@ -23,12 +28,30 @@
 
 			return rolesOrder[b.role] - rolesOrder[a.role];
 		});
+
+		fuse = new Fuse(users, {
+			keys: ['username'],
+			threshold: 0.3
+		});
 	});
+
+	$: if (fuse && query.trim()) {
+		results = fuse
+			.search(query)
+			.map((result: { item: PersonRecord; refIndex: number }) => result.item);
+	} else {
+		results = users;
+	}
 </script>
 
 <div class="p-2">
+	<input type="text" bind:value={query} placeholder="Поиск..." class="rounded border p-2" />
+
+	<br />
+	<br />
+
 	<ul>
-		{#each users as user (user.id.id.String)}
+		{#each results as user (user.id.id.String)}
 			<li>
 				- <a href="/users/{user.username}">{user.username} ({user.role})</a>
 			</li>
