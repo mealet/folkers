@@ -11,7 +11,17 @@
 		users = await UserService.list_users();
 
 		users = users.sort((a: User, b: User) => {
-			return rolesOrder[a.role] - rolesOrder[b.role];
+			// if (rolesOrder[a.role] > rolesOrder[b.role]) {
+			// 	return -1;
+			// }
+			//
+			// if (rolesOrder[b.role] > rolesOrder[a.role]) {
+			// 	return 1;
+			// }
+			//
+			// return 0;
+
+			return rolesOrder[b.role] - rolesOrder[a.role];
 		});
 	});
 </script>
