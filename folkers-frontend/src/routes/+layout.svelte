@@ -5,6 +5,9 @@
 	import { isAuthenticated, loggedUser, logout } from '$lib/stores/auth';
 	import { invalidateAll } from '$app/navigation';
 
+	import Protected from '$lib/components/protected.svelte';
+	import { ADMIN_ROLE } from '$lib';
+
 	let { children } = $props();
 
 	let authenticated = $derived(isAuthenticated);
@@ -29,6 +32,10 @@
 				{$user.username} ({$user.id.id.String}) | {$user.role}
 			</h2>
 			<button onclick={handleLogout}> Logout </button>
+
+			<Protected requiredRoles={[ADMIN_ROLE]}>
+				<a href="/users">Users</a>
+			</Protected>
 		</div>
 		<hr />
 		<br />
