@@ -67,7 +67,7 @@
 	<div>
 		<Protected
 			requiredRoles={[EDITOR_ROLE]}
-			requiredId={person.author.id.String}
+			requiredUsername={person.author}
 			adminRoles={[ADMIN_ROLE]}
 		>
 			<a href="/persons/{personId}/edit"
@@ -103,7 +103,9 @@
 		<h3>- Хорошие черты: {person.traits_good}</h3>
 		<h3>- Плохие черты: {person.traits_bad}</h3>
 
-		<h3>- Автор записи: {person.author.id.String}</h3>
+		<h3>
+			- Автор записи: <a href="/users/{person.author}" class="text-blue-500">{person.author}</a>
+		</h3>
 
 		<hr />
 		<br />

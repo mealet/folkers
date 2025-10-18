@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { loggedUser } from '$lib/stores/auth';
 
-	export let requiredId: string | null = null;
+	export let requiredUsername: string | null = null;
 	export let requiredRoles: string[] = [];
 	export let adminRoles: string[] = [];
 
@@ -10,7 +10,7 @@
 		if (!user) return false;
 
 		// проверка по ID
-		if (requiredId && user.id.id.String !== requiredId && !adminRoles.includes(user.role)) {
+		if (requiredUsername && user.username !== requiredUsername && !adminRoles.includes(user.role)) {
 			return false;
 		}
 
