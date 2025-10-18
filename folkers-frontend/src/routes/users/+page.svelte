@@ -20,7 +20,7 @@
 	<ul>
 		{#each users as user (user.id.id.String)}
 			<li>
-				- <a href="/users/{user.id.id.String}">{user.username} ({user.role})</a>
+				- <a href="/users/{user.username}">{user.username} ({user.role})</a>
 			</li>
 		{/each}
 	</ul>
