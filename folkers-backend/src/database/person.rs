@@ -31,7 +31,7 @@ pub struct PersonRecord {
     pub media: Vec<String>,
 
     /// SurrealDB reference to `user` record.
-    pub author: Thing
+    pub author: String
 }
 
 /// JSON Payload to create new Person's record

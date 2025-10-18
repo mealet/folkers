@@ -160,7 +160,7 @@ pub async fn persons_create_handler(
         return Err(StatusCode::CONFLICT);
     }
 
-    let option_record = DATABASE.add_person(new_record.0, &auth_user.id).await.or_else(|err| {
+    let option_record = DATABASE.add_person(new_record.0, &auth_user.username).await.or_else(|err| {
         log::error!("`{} ({})` [POST /persons/create] got database error: {}", auth_user.username, auth_user.id, err);
         Err(StatusCode::INTERNAL_SERVER_ERROR)
     })?;
@@ -170,7 +170,7 @@ pub async fn persons_create_handler(
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     }
 
-    let person_record= option_record.unwrap();
+    let person_record = option_record.unwrap();
 
     log::info!("`{} ({})` [POST /persons/create] created person record: {} {} {}", auth_user.username, auth_user.id, person_record.name, person_record.surname, person_record.patronymic);
 
@@ -193,7 +193,7 @@ pub async fn persons_patch_handler(
         Some(record) => {
             // verifying if we have access
 
-            if auth_user.role < auth::user::UserRole::Admin && record.author.id.to_string() != auth_user.id {
+            if auth_user.role < auth::user::UserRole::Admin && record.author != auth_user.username {
                 return Err(StatusCode::FORBIDDEN);
             }
             
@@ -226,7 +226,7 @@ pub async fn persons_delete_handler(
         Some(record) => {
             // verifying if we have access
 
-            if auth_user.role < auth::user::UserRole::Admin && record.author.id.to_string() != auth_user.id {
+            if auth_user.role < auth::user::UserRole::Admin && record.author != auth_user.username {
                 return Err(StatusCode::FORBIDDEN);
             }
 

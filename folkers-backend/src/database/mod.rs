@@ -76,7 +76,7 @@ DEFINE FIELD IF NOT EXISTS traits_bad ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS avatar ON TABLE {PERSON} TYPE string;
 DEFINE FIELD IF NOT EXISTS media ON TABLE {PERSON} TYPE array<string>;
 
-DEFINE FIELD IF NOT EXISTS author ON TABLE {PERSON} TYPE record<user>;
+DEFINE FIELD IF NOT EXISTS author ON TABLE {PERSON} TYPE string;
 
 DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS surname, name, patronymic UNIQUE;
 
@@ -248,7 +248,7 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
                     avatar: person.avatar,
                     media: person.media,
 
-                    author: format!("{}:{}", USER, author.as_ref()).parse().unwrap()
+                    author: author.as_ref().to_owned()
                 }
             ).await;
 
