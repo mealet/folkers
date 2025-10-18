@@ -28,9 +28,9 @@
 <div>
 	{#if $authenticated && $user}
 		<div class="flex gap-8">
-			<h2>
+			<a href="/users/{$user.username}" class="hover:text-blue-500">
 				{$user.username} ({$user.id.id.String}) | {$user.role}
-			</h2>
+			</a>
 			<button onclick={handleLogout}> Logout </button>
 
 			<Protected requiredRoles={[ADMIN_ROLE]}>
