@@ -31,11 +31,14 @@
 			<a href="/users/{$user.username}" class="hover:text-blue-500">
 				{$user.username} ({$user.id.id.String}) | {$user.role}
 			</a>
-			<button onclick={handleLogout}> Logout </button>
+
+			<a href="/">Main</a>
 
 			<Protected requiredRoles={[ADMIN_ROLE]}>
 				<a href="/users">Users</a>
 			</Protected>
+
+			<button onclick={handleLogout}> Logout </button>
 		</div>
 		<hr />
 		<br />
