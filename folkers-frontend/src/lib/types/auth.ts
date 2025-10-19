@@ -18,3 +18,10 @@ export interface AuthResponse {
   token: string;
   token_type: string;
 }
+
+export interface CreateUser {
+  username: string;
+  password: string;
+  role: string;
+  created_by: string;
+}

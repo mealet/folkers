@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { rolesOrder } from '$lib';
+	import { ADMIN_ROLE, rolesOrder } from '$lib';
 	import { UserService } from '$lib/services/user.service';
 	import type { User } from '$lib/types/auth';
 
 	import { onMount } from 'svelte';
 	import Fuse from 'fuse.js';
+	import Protected from '$lib/components/protected.svelte';
 
 	let users: User[] = [];
 
@@ -45,6 +46,13 @@
 </script>
 
 <div class="p-2">
+	<Protected requiredRoles={[ADMIN_ROLE]}>
+		<a href="/users/create"><button class="border-1 border-black p-1">Создать</button></a>
+	</Protected>
+
+	<br />
+	<br />
+
 	<input type="text" bind:value={query} placeholder="Поиск..." class="rounded border p-2" />
 
 	<br />

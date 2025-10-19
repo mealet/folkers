@@ -33,9 +33,7 @@
 
 <div class="p-2">
 	<Protected requiredRoles={[EDITOR_ROLE]} adminRoles={[ADMIN_ROLE]}>
-		<a href="/persons/create"
-			><button type="submit" class="border-1 border-black p-1">Создать</button></a
-		>
+		<a href="/persons/create"><button class="border-1 border-black p-1">Создать</button></a>
 
 		<br />
 		<br />
