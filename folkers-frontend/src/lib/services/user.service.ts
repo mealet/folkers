@@ -9,4 +9,8 @@ export class UserService {
   static async create_user(payload: CreateUser): Promise<User> {
     return await api.post('/users/create', payload);
   }
+
+  static async delete_user(username: string): Promise<User> {
+    return await api.delete(`/users/${username}`);
+  }
 }

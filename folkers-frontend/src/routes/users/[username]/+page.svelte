@@ -3,20 +3,22 @@
 	import { onMount } from 'svelte';
 
 	import { api } from '$lib/api/client';
+	import { loggedUser } from '$lib/stores/auth';
 	import type { User } from '$lib/types/auth';
+	import { UserService } from '$lib/services/user.service';
 
 	const userId = page.params.username;
 	let user: User | null = null;
 
+	$: allowedToEdit =
+		user &&
+		$loggedUser &&
+		($loggedUser.username === user.created_by || $loggedUser.created_by === 'system') &&
+		user.created_by !== 'system';
+
 	onMount(async () => {
 		user = await api.get(`/users/${userId}`);
 	});
-
-	async function gotoCreator() {
-		if (user) {
-			window.location.href = `/users/${user.created_by}`;
-		}
-	}
 
 	function formatDate(dateInput: string | Date): string {
 		const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -29,6 +31,24 @@
 		const minutes = pad(date.getMinutes());
 
 		return `${day}.${month}.${year} ${hours}:${minutes}`;
+	}
+
+	async function gotoCreator() {
+		if (user) {
+			window.location.href = `/users/${user.created_by}`;
+		}
+	}
+
+	async function deleteUser() {
+		if (user && allowedToEdit) {
+			try {
+				await UserService.delete_user(user.username);
+
+				window.location.href = '/users';
+			} catch (error) {
+				console.error('Error deleting user: ', error);
+			}
+		}
 	}
 </script>
 
@@ -44,6 +64,16 @@
 			</button>
 		</p>
 		<p>Дата создания: {user.creation_datetime ? formatDate(user.creation_datetime) : '-'}</p>
+
+		{#if allowedToEdit}
+			<br />
+
+			<button class="cursor-pointer border-1 border-black p-1">Редактировать</button>
+			<button
+				class="cursor-pointer border-1 border-black bg-red-500 p-1 text-white"
+				on:click|preventDefault={deleteUser}>Удалить</button
+			>
+		{/if}
 	</div>
 {:else}
 	<h1>Ничего не найдено</h1>
