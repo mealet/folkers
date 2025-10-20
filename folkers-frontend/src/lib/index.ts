@@ -22,3 +22,5 @@ export const selectableRoles = [
     label: 'Администратор'
   }
 ];
+
+export const ACCEPTABLE_MEDIA_TYPES = 'image/jpeg, image/png, image/gif, image/webp';

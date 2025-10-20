@@ -14,6 +14,10 @@ export class PersonService {
     return await api.post<PersonRecord>('/persons/create', payload);
   }
 
+  static async update_person(id: string, payload: CreatePersonRecord): Promise<PersonRecord> {
+    return await api.patch<PersonRecord>(`/persons/${id}`, payload);
+  }
+
   static async delete_person(id: string): Promise<PersonRecord> {
     return await api.delete<PersonRecord>(`/persons/${id}`);
   }

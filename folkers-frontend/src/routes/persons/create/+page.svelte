@@ -4,7 +4,7 @@
 	import { PersonService } from '$lib/services/person.service';
 	import type { CreatePersonRecord } from '$lib/types/person';
 
-	const ACCEPTABLE_MEDIA_TYPES = 'image/jpeg, image/png, image/gif, image/webp';
+	import { ACCEPTABLE_MEDIA_TYPES } from '$lib';
 
 	let errorMessage = '';
 

@@ -1,6 +1,6 @@
 import { api } from '$lib/api/client';
 
-const SERVER_MEDIA_PREFIX = '@/';
+export const SERVER_MEDIA_PREFIX = '@/';
 
 export class MediaService {
     static async get(url: string): Promise<string> {
@@ -16,6 +16,6 @@ export class MediaService {
 
     static async upload(file: File): Promise<string> {
         const hash = await api.upload(file);
-        return `@/${hash.trim()}`
+        return `@/${hash.trim()}`;
     }
 }
