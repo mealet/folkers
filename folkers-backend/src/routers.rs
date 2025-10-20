@@ -513,6 +513,20 @@ pub async fn users_username_patch_handler(
             // disabling `created_by` field patching
 
             patched.created_by = record.created_by.clone();
+            
+            if patched.password.is_empty() {
+                patched.password = record.password.clone();
+            } else {
+                patched.password = auth::UserRepository::hash_password(&patched.password).map_err(|err| {
+                    log::error!(
+                        "`{} ({})` [POST /users/create] got HASHING ERROR: {}",
+                        auth_user.username,
+                        auth_user.id,
+                        err
+                    );
+                    StatusCode::INTERNAL_SERVER_ERROR
+                })?;
+            }
 
             let _ = DATABASE
                 .update_user(record.id.clone().unwrap().id.to_string(), patched.0.clone())
