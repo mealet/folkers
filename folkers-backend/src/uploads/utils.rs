@@ -16,6 +16,6 @@ pub fn get_content_type(filename: &str) -> &str {
         fname if fname.ends_with(".gif") => "image/gif",
         fname if fname.ends_with(".webp") => "image/webp",
         fname if fname.ends_with(".svg") => "image/svg+xml",
-        _ => "application/octet-stream"
+        _ => "application/octet-stream",
     }
 }

@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
-use surrealdb::{sql::Thing, Datetime};
+use serde::{Deserialize, Serialize};
+use surrealdb::{Datetime, sql::Thing};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserRecord {
@@ -8,7 +8,7 @@ pub struct UserRecord {
     pub password: String,
     pub role: String,
     pub created_by: String,
-    pub creation_datetime: Datetime
+    pub creation_datetime: Datetime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -16,5 +16,5 @@ pub struct CreateUserRecord {
     pub username: String,
     pub password: String,
     pub role: String,
-    pub created_by: String
+    pub created_by: String,
 }

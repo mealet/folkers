@@ -5,14 +5,14 @@ pub struct User {
     pub id: String,
     pub username: String,
     pub password_hash: String,
-    pub role: UserRole
+    pub role: UserRole,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UserRole {
     Watcher,
     Editor,
-    Admin
+    Admin,
 }
 
 impl std::fmt::Display for UserRole {
@@ -27,7 +27,7 @@ impl UserRole {
             "watcher" => Self::Watcher,
             "editor" => Self::Editor,
             "admin" => Self::Admin,
-            _ => Self::Watcher
+            _ => Self::Watcher,
         }
     }
 

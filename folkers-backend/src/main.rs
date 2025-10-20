@@ -16,13 +16,13 @@
 //! FOLKERS_JWT_SECRET=secret string for jwt tokens
 //! FOLKERS_BASE64_SALT=base64 encoded salt for hash
 //! FOLKERS_UPLOAD_DIR=path to directory with uploaded media
-//! 
+//!
 //! FOLKERS_DB_USERNAME=database username
 //! FOLKERS_DB_PASSWORD=database password
 //! FOLKERS_DB_NAMESPACE=database namespace (surrealdb)
 //! FOLKERS_DB_DATABASE=database base name (surrealdb)
 //! FOLKERS_DB_ENDPOINT=database endpoint
-//! 
+//!
 //! FOLKERS_STATIC_ADMIN_USERNAME=admin that will be created every start
 //! FOLKERS_STATIC_ADMIN_PASSWORD=static admin password
 //! ```
@@ -157,18 +157,19 @@
 //! > **Returns:** [UserRecord](database::user::UserRecord)
 
 use axum::{Router, http::Method, routing};
-use tower_http::cors::{self, CorsLayer};
 use std::sync::LazyLock;
+use tower_http::cors::{self, CorsLayer};
 
 mod auth;
+mod database;
+mod middleware;
 mod routers;
 mod uploads;
-mod middleware;
-mod database;
 
 const ENDPOINT: &str = "0.0.0.0:3000";
 
-pub static DATABASE: LazyLock<database::DatabaseClient> = LazyLock::new(database::DatabaseClient::init);
+pub static DATABASE: LazyLock<database::DatabaseClient> =
+    LazyLock::new(database::DatabaseClient::init);
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -183,12 +184,13 @@ async fn main() -> anyhow::Result<()> {
         std::process::exit(1);
     }).unwrap();
 
-    let _: Result<argon2::password_hash::SaltString, String> = argon2::password_hash::SaltString::from_b64(&base64_salt).or_else(|err| {
-        log::error!("💣 Critical Security Error. Encoded salt string failed verification!");
-        log::error!("Error: {}", err);
+    let _: Result<argon2::password_hash::SaltString, String> =
+        argon2::password_hash::SaltString::from_b64(&base64_salt).map_err(|err| {
+            log::error!("💣 Critical Security Error. Encoded salt string failed verification!");
+            log::error!("Error: {}", err);
 
-        std::process::exit(1);
-    });
+            std::process::exit(1);
+        });
 
     log::info!("🚀 Folkers Backend Server");
     log::info!("⚙️ Starting initialization...");
@@ -203,7 +205,15 @@ async fn main() -> anyhow::Result<()> {
     let db_database = std::env::var("FOLKERS_DB_DATABASE")?;
     let db_endpoint = std::env::var("FOLKERS_DB_ENDPOINT")?;
 
-    DATABASE.setup(&db_endpoint, &db_namespace, &db_database, &db_username, &db_password).await?;
+    DATABASE
+        .setup(
+            &db_endpoint,
+            &db_namespace,
+            &db_database,
+            &db_username,
+            &db_password,
+        )
+        .await?;
 
     // Uploads Setup
 
@@ -217,7 +227,7 @@ async fn main() -> anyhow::Result<()> {
         .allow_methods([Method::POST, Method::GET, Method::DELETE]);
 
     // App State
-    
+
     log::info!("- Setting up JWT Service...");
 
     let jwt_config = auth::jwt::JwtConfig::new()?;
@@ -226,7 +236,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app_state = routers::AppState {
         user_repo,
-        jwt_service
+        jwt_service,
     };
 
     // Main Application Router
@@ -243,22 +253,52 @@ async fn main() -> anyhow::Result<()> {
         .route("/media/{hash}", routing::get(routers::media_handler))
         .route("/persons", routing::get(routers::persons_handler))
         .route("/persons/{id}", routing::get(routers::persons_id_handler))
-        .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
+        .route_layer(axum::middleware::from_fn_with_state(
+            app_state.clone(),
+            middleware::auth_middleware,
+        ));
 
     let editors_routers = Router::new()
         .route("/upload", routing::post(routers::upload_handler))
-        .route("/persons/create", routing::post(routers::persons_create_handler))
-        .route("/persons/{id}", routing::patch(routers::persons_patch_handler))
-        .route("/persons/{id}", routing::delete(routers::persons_delete_handler))
-        .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
+        .route(
+            "/persons/create",
+            routing::post(routers::persons_create_handler),
+        )
+        .route(
+            "/persons/{id}",
+            routing::patch(routers::persons_patch_handler),
+        )
+        .route(
+            "/persons/{id}",
+            routing::delete(routers::persons_delete_handler),
+        )
+        .route_layer(axum::middleware::from_fn_with_state(
+            app_state.clone(),
+            middleware::auth_middleware,
+        ));
 
     let admin_routers = Router::new()
         .route("/users", routing::get(routers::users_handler))
-        .route("/users/create", routing::post(routers::users_create_handler))
-        .route("/users/{username}", routing::get(routers::users_username_handler))
-        .route("/users/{username}", routing::delete(routers::users_username_delete_handler))
-        .route("/users/{username}", routing::patch(routers::users_username_patch_handler))
-        .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), middleware::auth_middleware));
+        .route(
+            "/users/create",
+            routing::post(routers::users_create_handler),
+        )
+        .route(
+            "/users/{username}",
+            routing::get(routers::users_username_handler),
+        )
+        .route(
+            "/users/{username}",
+            routing::delete(routers::users_username_delete_handler),
+        )
+        .route(
+            "/users/{username}",
+            routing::patch(routers::users_username_patch_handler),
+        )
+        .route_layer(axum::middleware::from_fn_with_state(
+            app_state.clone(),
+            middleware::auth_middleware,
+        ));
 
     let app = Router::new()
         .merge(public_routers)

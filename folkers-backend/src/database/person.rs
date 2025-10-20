@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
-use surrealdb::{sql::Thing, Datetime};
+use serde::{Deserialize, Serialize};
+use surrealdb::{Datetime, sql::Thing};
 
 /// Record about Person's full information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -31,7 +31,7 @@ pub struct PersonRecord {
     pub media: Vec<String>,
 
     /// SurrealDB reference to `user` record.
-    pub author: String
+    pub author: String,
 }
 
 /// JSON Payload to create new Person's record
@@ -40,7 +40,7 @@ pub struct CreatePersonRecord {
     pub name: String,
     pub surname: String,
     pub patronymic: String,
-    
+
     pub birthday: Datetime,
     pub city: String,
     pub intented_address: String,
@@ -55,7 +55,7 @@ pub struct CreatePersonRecord {
     pub avatar: Option<String>,
     /// List of string URLs to images.
     /// String may start with `@/` which stands for self link.
-    pub media: Vec<String>
+    pub media: Vec<String>,
 }
 
 /// Search JSON payload. <br/>
@@ -65,5 +65,5 @@ pub struct CreatePersonRecord {
 #[allow(unused)]
 pub struct SearchPersonRecord {
     /// Optional string that can contains `name`, `surname`, `patronymic`
-    pub search_query: String
+    pub search_query: String,
 }
