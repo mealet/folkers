@@ -183,6 +183,20 @@
 
 		<br />
 
+		<div>
+			<p>Описание:</p>
+			<textarea class="border-1 border-black p-1" bind:value={payload.summary}></textarea>
+		</div>
+
+		<br />
+
+		<div>
+			<p>Прошлое:</p>
+			<textarea class="border-1 border-black p-1" bind:value={payload.past}></textarea>
+		</div>
+
+		<br />
+
 		<p>Аватар:</p>
 		<div class="flex gap-3">
 			<div>

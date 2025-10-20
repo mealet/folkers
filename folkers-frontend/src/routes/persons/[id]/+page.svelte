@@ -31,8 +31,8 @@
 		const summaryRenderResult = await compile(person.summary);
 		summaryRendered = summaryRenderResult?.code || person.summary;
 
-		const pastRenderResult = await compile(person.summary);
-		pastRendered = pastRenderResult?.code || person.summary;
+		const pastRenderResult = await compile(person.past);
+		pastRendered = pastRenderResult?.code || person.past;
 
 		if (person.avatar) {
 			try {
