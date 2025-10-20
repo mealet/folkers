@@ -2,10 +2,10 @@
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 
-	import { api } from '$lib/api/client';
 	import { loggedUser } from '$lib/stores/auth';
-	import type { User } from '$lib/types/auth';
 	import { UserService } from '$lib/services/user.service';
+
+	import type { User } from '$lib/types/auth';
 
 	const userId = page.params.username;
 	let user: User | null = null;
@@ -17,7 +17,7 @@
 		user.created_by !== 'system';
 
 	onMount(async () => {
-		user = await api.get(`/users/${userId}`);
+		if (userId) user = await UserService.get_user(userId);
 	});
 
 	function formatDate(dateInput: string | Date): string {
@@ -68,7 +68,9 @@
 		{#if allowedToEdit}
 			<br />
 
-			<button class="cursor-pointer border-1 border-black p-1">Редактировать</button>
+			<a href="/users/{userId}/edit"
+				><button class="cursor-pointer border-1 border-black p-1">Редактировать</button></a
+			>
 			<button
 				class="cursor-pointer border-1 border-black bg-red-500 p-1 text-white"
 				on:click|preventDefault={deleteUser}>Удалить</button

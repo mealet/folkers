@@ -1,23 +1,8 @@
 <script lang="ts">
-	import { ADMIN_ROLE, EDITOR_ROLE, WATCHER_ROLE } from '$lib';
+	import { selectableRoles } from '$lib';
 	import { ApiClientError } from '$lib/api/error';
 	import { UserService } from '$lib/services/user.service';
 	import type { CreateUser } from '$lib/types/auth';
-
-	const selectableRoles = [
-		{
-			id: WATCHER_ROLE,
-			label: 'Читатель'
-		},
-		{
-			id: EDITOR_ROLE,
-			label: 'Редактор'
-		},
-		{
-			id: ADMIN_ROLE,
-			label: 'Администратор'
-		}
-	];
 
 	let payload: CreateUser = {
 		username: '',
