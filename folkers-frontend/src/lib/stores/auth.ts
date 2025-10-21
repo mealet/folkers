@@ -1,7 +1,7 @@
-import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
-import type { User } from '$lib/types/auth';
-import { api } from '$lib/api/client';
+import { writable } from "svelte/store";
+import { browser } from "$app/environment";
+import type { User } from "$lib/types/auth";
+import { api } from "$lib/api/client";
 
 export interface TokenPayload {
 	exp: number;
@@ -10,22 +10,22 @@ export interface TokenPayload {
 	role: string;
 }
 
-export const accessTokenStorage = 'access_token';
+export const accessTokenStorage = "access_token";
 
 export const isAuthenticated = writable<boolean>(false);
 export const loggedUser = writable<User | null>(null);
 export const isLoading = writable<boolean>(true);
 
 const cookieSecure = () => {
-	if (!browser) return '';
-	return location.protocol === 'https:' ? 'Secure;' : '';
+	if (!browser) return "";
+	return location.protocol === "https:" ? "Secure;" : "";
 };
 
 export function isTokenExpired(token: string | null): boolean {
 	if (!token) return true;
 
 	try {
-		const payload = JSON.parse(atob(token.split('.')[1]));
+		const payload = JSON.parse(atob(token.split(".")[1]));
 		const exp = payload.exp * 1000;
 		return Date.now() >= exp;
 	} catch {
@@ -37,7 +37,7 @@ export function getTokenData(token: string | null): TokenPayload | null {
 	if (!token) return null;
 
 	try {
-		const payload = JSON.parse(atob(token.split('.')[1])) as TokenPayload;
+		const payload = JSON.parse(atob(token.split(".")[1])) as TokenPayload;
 		return payload;
 	} catch {
 		return null;
@@ -75,14 +75,14 @@ export function clearAuth(): void {
 export function logout(): void {
 	clearAuth();
 	if (browser) {
-		window.location.href = '/login';
+		window.location.href = "/login";
 	}
 }
 
 export function handleTokenExpired(): void {
 	clearAuth();
 	if (browser) {
-		window.location.href = '/login';
+		window.location.href = "/login";
 	}
 }
 
@@ -92,11 +92,11 @@ export async function initializeAuth(): Promise<void> {
 
 		if (token) {
 			try {
-				const response = await api.get<User>('/me');
+				const response = await api.get<User>("/me");
 				isAuthenticated.set(true);
 				loggedUser.set(response);
 			} catch (error) {
-				console.error('Auth initialization error: ', error);
+				console.error("Auth initialization error: ", error);
 			}
 		} else {
 			clearAuth();

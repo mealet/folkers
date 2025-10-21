@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { page } from '$app/state';
-	import { selectableRoles } from '$lib';
+	import { onMount } from "svelte";
+	import { page } from "$app/state";
+	import { selectableRoles } from "$lib";
 
-	import type { CreateUser, User } from '$lib/types/auth';
-	import { ApiClientError } from '$lib/api/error';
-	import { UserService } from '$lib/services/user.service';
+	import type { CreateUser, User } from "$lib/types/auth";
+	import { ApiClientError } from "$lib/api/error";
+	import { UserService } from "$lib/services/user.service";
 
 	const userId = page.params.username;
 
 	let user: User | null = null;
 	let payload: CreateUser | null = null;
 
-	let errorMessage = '';
+	let errorMessage = "";
 
 	onMount(async () => {
 		if (!userId) return;
@@ -20,7 +20,7 @@
 		user = await UserService.get_user(userId);
 		payload = {
 			username: user.username,
-			password: '',
+			password: "",
 			role: user.role,
 			created_by: user.created_by
 		};

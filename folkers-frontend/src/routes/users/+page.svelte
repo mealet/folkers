@@ -1,15 +1,17 @@
 <script lang="ts">
-	import { ADMIN_ROLE, rolesOrder } from '$lib';
-	import { UserService } from '$lib/services/user.service';
-	import type { User } from '$lib/types/auth';
+	import { onMount } from "svelte";
+	import { resolve } from "$app/paths";
 
-	import { onMount } from 'svelte';
-	import Fuse from 'fuse.js';
-	import Protected from '$lib/components/protected.svelte';
+	import { ADMIN_ROLE, rolesOrder } from "$lib";
+	import { UserService } from "$lib/services/user.service";
+	import type { User } from "$lib/types/auth";
+
+	import Fuse from "fuse.js";
+	import Protected from "$lib/components/protected.svelte";
 
 	let users: User[] = [];
 
-	let query = '';
+	let query = "";
 	let results: User[] = [];
 	let fuse = Fuse<User>;
 
@@ -31,15 +33,13 @@
 		});
 
 		fuse = new Fuse(users, {
-			keys: ['username'],
+			keys: ["username"],
 			threshold: 0.3
 		});
 	});
 
 	$: if (fuse && query.trim()) {
-		results = fuse
-			.search(query)
-			.map((result: { item: PersonRecord; refIndex: number }) => result.item);
+		results = fuse.search(query).map((result: { item: User; refIndex: number }) => result.item);
 	} else {
 		results = users;
 	}
@@ -47,7 +47,8 @@
 
 <div class="p-2">
 	<Protected requiredRoles={[ADMIN_ROLE]}>
-		<a href="/users/create"><button class="border-1 border-black p-1">Создать</button></a>
+		<a href={resolve("/users/create")}><button class="border-1 border-black p-1">Создать</button></a
+		>
 	</Protected>
 
 	<br />
@@ -61,7 +62,7 @@
 	<ul>
 		{#each results as user (user.id.id.String)}
 			<li>
-				- <a href="/users/{user.username}">{user.username} ({user.role})</a>
+				- <a href={resolve(`/users/${user.username}`)}>{user.username} ({user.role})</a>
 			</li>
 		{/each}
 	</ul>

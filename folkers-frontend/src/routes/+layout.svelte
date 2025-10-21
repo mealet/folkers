@@ -1,12 +1,14 @@
 <script lang="ts">
-	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import "../app.css";
+	import favicon from "$lib/assets/favicon.svg";
 
-	import { isAuthenticated, loggedUser, logout } from '$lib/stores/auth';
-	import { invalidateAll } from '$app/navigation';
+	import { resolve } from "$app/paths";
 
-	import Protected from '$lib/components/protected.svelte';
-	import { ADMIN_ROLE } from '$lib';
+	import { isAuthenticated, loggedUser, logout } from "$lib/stores/auth";
+	import { invalidateAll } from "$app/navigation";
+
+	import Protected from "$lib/components/protected.svelte";
+	import { ADMIN_ROLE } from "$lib";
 
 	let { children } = $props();
 
@@ -28,14 +30,14 @@
 <div>
 	{#if $authenticated && $user}
 		<div class="flex gap-8">
-			<a href="/users/{$user.username}" class="hover:text-blue-500">
+			<a href={resolve(`/users/${$user.username}`)} class="hover:text-blue-500">
 				{$user.username} ({$user.id.id.String}) | {$user.role}
 			</a>
 
-			<a href="/">Main</a>
+			<a href={resolve("/")}>Main</a>
 
 			<Protected requiredRoles={[ADMIN_ROLE]}>
-				<a href="/users">Users</a>
+				<a href={resolve("/users")}>Users</a>
 			</Protected>
 
 			<button onclick={handleLogout}> Logout </button>

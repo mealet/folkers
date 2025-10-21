@@ -1,32 +1,32 @@
 <script lang="ts">
-	import { ApiClientError } from '$lib/api/error';
-	import { MediaService } from '$lib/services/media.service';
-	import { PersonService } from '$lib/services/person.service';
-	import type { CreatePersonRecord } from '$lib/types/person';
+	import { ApiClientError } from "$lib/api/error";
+	import { MediaService } from "$lib/services/media.service";
+	import { PersonService } from "$lib/services/person.service";
+	import type { CreatePersonRecord } from "$lib/types/person";
 
-	import { ACCEPTABLE_MEDIA_TYPES } from '$lib';
+	import { ACCEPTABLE_MEDIA_TYPES } from "$lib";
 
-	let errorMessage = '';
+	let errorMessage = "";
 
 	let avatarFile: FileList | null = null;
-	let avatarURL: string = '';
+	let avatarURL: string = "";
 
 	let mediaFiles: FileList | null = null;
-	let mediaURLS: string[] = [''];
+	let mediaURLS: string[] = [""];
 
 	let payload: CreatePersonRecord = {
-		name: '',
-		surname: '',
-		patronymic: '',
+		name: "",
+		surname: "",
+		patronymic: "",
 
-		birthday: '',
-		city: '',
-		intented_address: '',
+		birthday: "",
+		city: "",
+		intented_address: "",
 
-		summary: '',
-		past: '',
-		traits_good: '',
-		traits_bad: '',
+		summary: "",
+		past: "",
+		traits_good: "",
+		traits_bad: "",
 
 		avatar: null,
 		media: []
@@ -38,8 +38,8 @@
 
 		mediaURLS[index] = value;
 
-		if (index === mediaURLS.length - 1 && value.trim() !== '') {
-			mediaURLS = [...mediaURLS, ''];
+		if (index === mediaURLS.length - 1 && value.trim() !== "") {
+			mediaURLS = [...mediaURLS, ""];
 		}
 	}
 
@@ -50,7 +50,7 @@
 				payload.avatar = await MediaService.upload(avatarFile[0]);
 			} catch (error) {
 				console.error(error);
-				payload.avatar = 'NONE';
+				payload.avatar = "NONE";
 			}
 		} else {
 			payload.avatar = avatarURL;
@@ -65,7 +65,7 @@
 					const hash = await MediaService.upload(mediaFile);
 					payloadMedia.push(hash);
 				} catch (error) {
-					console.error('Error Uploading Media: ', error);
+					console.error("Error Uploading Media: ", error);
 				}
 			}
 		}
@@ -233,7 +233,7 @@
 
 			<br />
 
-			{#each mediaURLS as _, i (i)}
+			{#each mediaURLS as content, i (i)}
 				<br />
 				<input
 					type="url"
@@ -242,6 +242,7 @@
 					on:input={(event) => handleMediaInput(i, event)}
 					class="border-1 border-black p-1"
 				/>
+				<p class="hidden">{content}</p>
 				<br />
 			{/each}
 		</div>

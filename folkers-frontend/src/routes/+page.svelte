@@ -1,15 +1,18 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { PersonService } from '$lib/services/person.service';
-	import type { PersonRecord } from '$lib/types/person';
-	import Fuse from 'fuse.js';
+	import { onMount } from "svelte";
+	import { resolve } from "$app/paths";
 
-	import Protected from '$lib/components/protected.svelte';
-	import { ADMIN_ROLE, EDITOR_ROLE } from '$lib';
+	import { PersonService } from "$lib/services/person.service";
+	import type { PersonRecord } from "$lib/types/person";
+
+	import Protected from "$lib/components/protected.svelte";
+	import { ADMIN_ROLE, EDITOR_ROLE } from "$lib";
+
+	import Fuse from "fuse.js";
 
 	let persons: PersonRecord[] = [];
 
-	let query = '';
+	let query = "";
 	let results: PersonRecord[] = [];
 	let fuse = Fuse<PersonRecord>;
 
@@ -17,7 +20,7 @@
 		persons = await PersonService.list_persons();
 
 		fuse = new Fuse(persons, {
-			keys: ['surname', 'name', 'patronymic'],
+			keys: ["surname", "name", "patronymic"],
 			threshold: 0.3
 		});
 	});
@@ -33,7 +36,9 @@
 
 <div class="p-2">
 	<Protected requiredRoles={[EDITOR_ROLE]} adminRoles={[ADMIN_ROLE]}>
-		<a href="/persons/create"><button class="border-1 border-black p-1">Создать</button></a>
+		<a href={resolve("/persons/create")}
+			><button class="border-1 border-black p-1">Создать</button></a
+		>
 
 		<br />
 		<br />
@@ -48,7 +53,7 @@
 	<ul>
 		{#each results as person (person.id)}
 			<li>
-				- <a href="/persons/{person.id.id.String}"
+				- <a href={resolve(`/persons/${person.id.id.String}`)}
 					>{person.surname} {person.name} {person.patronymic}</a
 				>
 			</li>

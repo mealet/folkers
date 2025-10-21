@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { AuthService } from '$lib/services/auth.service';
-	import type { LoginCredentials } from '$lib/types/auth';
+	import { AuthService } from "$lib/services/auth.service";
+	import type { LoginCredentials } from "$lib/types/auth";
 
 	let credentials: LoginCredentials = {
-		username: '',
-		password: ''
+		username: "",
+		password: ""
 	};
-	let error = '';
+	let error = "";
 	let loading = false;
 
 	async function handleLogin(): Promise<void> {
 		if (loading) return;
 
 		loading = true;
-		error = '';
+		error = "";
 
 		try {
 			await AuthService.login(credentials);
-			window.location.href = '/';
+			window.location.href = "/";
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Login failed';
+			error = err instanceof Error ? err.message : "Login failed";
 			return;
 		} finally {
 			loading = false;
@@ -47,7 +47,7 @@
 	<br />
 	<br />
 	<button disabled={loading} on:click|preventDefault={handleLogin}>
-		{loading ? 'Logging in...' : 'Login'}
+		{loading ? "Logging in..." : "Login"}
 	</button>
 
 	{#if error}

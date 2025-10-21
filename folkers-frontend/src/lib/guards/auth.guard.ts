@@ -1,6 +1,6 @@
-import { getToken, type TokenPayload } from '$lib/stores/auth';
-import { api } from '$lib/api/client';
-import { ADMIN_ROLE } from '$lib';
+import { getToken, type TokenPayload } from "$lib/stores/auth";
+import { api } from "$lib/api/client";
+import { ADMIN_ROLE } from "$lib";
 
 export async function authGuard(): Promise<boolean> {
 	try {
@@ -21,7 +21,7 @@ export async function authGuard(): Promise<boolean> {
 		// 	return false;
 		// }
 
-		await api.get('/me');
+		await api.get("/me");
 	} catch {
 		return false;
 	}
@@ -31,7 +31,7 @@ export async function authGuard(): Promise<boolean> {
 
 export async function adminGuardServer(token: string): Promise<boolean> {
 	try {
-		const payload: TokenPayload = JSON.parse(atob(token.split('.')[1]));
+		const payload: TokenPayload = JSON.parse(atob(token.split(".")[1]));
 		return payload.role == ADMIN_ROLE;
 	} catch {
 		return false;

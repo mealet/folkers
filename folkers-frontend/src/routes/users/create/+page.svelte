@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { selectableRoles } from '$lib';
-	import { ApiClientError } from '$lib/api/error';
-	import { UserService } from '$lib/services/user.service';
-	import type { CreateUser } from '$lib/types/auth';
+	import { selectableRoles } from "$lib";
+	import { ApiClientError } from "$lib/api/error";
+	import { UserService } from "$lib/services/user.service";
+	import type { CreateUser } from "$lib/types/auth";
 
 	let payload: CreateUser = {
-		username: '',
-		password: '',
-		role: '',
-		created_by: 'auto'
+		username: "",
+		password: "",
+		role: "",
+		created_by: "auto"
 	};
 
-	let errorMessage = '';
+	let errorMessage = "";
 
 	async function handleSubmit() {
 		try {

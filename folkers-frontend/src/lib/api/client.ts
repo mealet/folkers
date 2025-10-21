@@ -1,8 +1,8 @@
-import { getToken } from '$lib/stores/auth';
-import { ApiClientError } from './error';
+import { getToken } from "$lib/stores/auth";
+import { ApiClientError } from "./error";
 
 export const API_ENDPOINT =
-	process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3000';
+	process.env.NODE_ENV === "production" ? "/api" : "http://localhost:3000";
 
 class ApiClient {
 	private baseUrl: string;
@@ -17,7 +17,7 @@ class ApiClient {
 
 		const config: RequestInit = {
 			headers: {
-				'Content-Type': 'application/json',
+				"Content-Type": "application/json",
 				...options.headers
 			},
 			...options
@@ -36,7 +36,7 @@ class ApiClient {
 
 		const config: RequestInit = {
 			headers: {
-				'Content-Type': 'application/json',
+				"Content-Type": "application/json",
 				...options.headers
 			},
 			...options
@@ -50,7 +50,7 @@ class ApiClient {
 
 		if (response.status === 401) {
 			// handleTokenExpired();
-			throw new ApiClientError('Authentication required', 401);
+			throw new ApiClientError("Authentication required", 401);
 		}
 
 		if (!response.ok) {
@@ -66,7 +66,7 @@ class ApiClient {
 		return (await response.json()) as T;
 	}
 
-	async upload(file: File, fieldName = 'photo'): Promise<string> {
+	async upload(file: File, fieldName = "photo"): Promise<string> {
 		const token = getToken();
 		const url = `${this.baseUrl}/upload`;
 
@@ -80,13 +80,13 @@ class ApiClient {
 		}
 
 		const response = await fetch(url, {
-			method: 'POST',
+			method: "POST",
 			headers: headers,
 			body: formData
 		});
 
 		if (response.status === 401) {
-			throw new ApiClientError('Authentication required', 401);
+			throw new ApiClientError("Authentication required", 401);
 		}
 
 		if (!response.ok) {
@@ -103,13 +103,13 @@ class ApiClient {
 	}
 
 	async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-		return this.request(endpoint, { ...options, method: 'GET' });
+		return this.request(endpoint, { ...options, method: "GET" });
 	}
 
 	async post<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
 		return this.request<T>(endpoint, {
 			...options,
-			method: 'POST',
+			method: "POST",
 			body: data ? JSON.stringify(data) : undefined
 		});
 	}
@@ -117,13 +117,13 @@ class ApiClient {
 	async patch<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
 		return this.request<T>(endpoint, {
 			...options,
-			method: 'PATCH',
+			method: "PATCH",
 			body: data ? JSON.stringify(data) : undefined
 		});
 	}
 
 	async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-		return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+		return this.request<T>(endpoint, { ...options, method: "DELETE" });
 	}
 }
 

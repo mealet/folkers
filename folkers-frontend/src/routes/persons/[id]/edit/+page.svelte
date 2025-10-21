@@ -1,29 +1,29 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { onMount } from 'svelte';
+	import { page } from "$app/state";
+	import { onMount } from "svelte";
 
-	import { ACCEPTABLE_MEDIA_TYPES } from '$lib';
+	import { ACCEPTABLE_MEDIA_TYPES } from "$lib";
 
-	import { PersonService } from '$lib/services/person.service';
-	import { MediaService } from '$lib/services/media.service';
-	import { ApiClientError } from '$lib/api/error';
-	import type { PersonRecord, CreatePersonRecord } from '$lib/types/person';
+	import { PersonService } from "$lib/services/person.service";
+	import { MediaService } from "$lib/services/media.service";
+	import { ApiClientError } from "$lib/api/error";
+	import type { PersonRecord, CreatePersonRecord } from "$lib/types/person";
 
 	const personId = page.params.id;
 
-	const AVATAR_WIDTH = '256px';
-	const AVATAR_HEIGHT = '256px';
+	const AVATAR_WIDTH = "256px";
+	const AVATAR_HEIGHT = "256px";
 
-	let errorMessage = '';
+	let errorMessage = "";
 
 	let person: PersonRecord | null = null;
 	let payload: CreatePersonRecord | null = null;
 
 	let avatarFile: FileList | null = null;
-	let avatarImageDisplay = '';
+	let avatarImageDisplay = "";
 
 	onMount(async () => {
-		person = await PersonService.get_person(personId || '');
+		person = await PersonService.get_person(personId || "");
 		payload = {
 			name: person.name,
 			surname: person.surname,
@@ -42,7 +42,7 @@
 			media: person.media
 		};
 
-		avatarImageDisplay = await MediaService.get(person.avatar || '');
+		avatarImageDisplay = await MediaService.get(person.avatar || "");
 	});
 
 	async function updateAvatarPreview() {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { loggedUser } from '$lib/stores/auth';
+	import { loggedUser } from "$lib/stores/auth";
 
 	export let requiredUsername: string | null = null;
 	export let requiredRoles: string[] = [];
