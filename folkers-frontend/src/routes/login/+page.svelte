@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { KeyRound } from "@lucide/svelte";
-	import { Toast, createToaster } from "@skeletonlabs/skeleton-svelte";
+	import { toaster } from "$lib/stores/toaster";
 
 	import { AuthService } from "$lib/services/auth.service";
+	import { ApiClientError } from "$lib/api/error";
 	import type { LoginCredentials } from "$lib/types/auth";
 
 	const bannerSrc = "/banner.png";
-	const toaster = createToaster({});
 
 	let credentials: LoginCredentials = {
 		username: "",
@@ -23,16 +23,30 @@
 			await AuthService.login(credentials);
 			window.location.href = "/";
 		} catch (err) {
-			const error = err instanceof Error ? err.message : "Login failed";
+			const error = err instanceof ApiClientError ? err.status : -1;
+
+			console.error(error);
 
 			toaster.error({
 				title: "Ошибка",
-				description: error
+				description: describeError(error)
 			});
 			return;
 		} finally {
 			loading = false;
 		}
+	}
+
+	function describeError(code: number | undefined): string {
+		const defaultErrorMessage = "Возникла неизвестная ошибка";
+
+		const messages: Record<number, string> = {
+			404: "Указанный пользователь не найден",
+			401: "Введён неверный пароль",
+			500: "Возникла ошибка на стороне сервера"
+		};
+
+		return messages[code ?? -1] ?? defaultErrorMessage;
 	}
 </script>
 
@@ -58,7 +72,7 @@
 			</div>
 
 			<!-- Login Form -->
-			<form on:submit|preventDefault={handleLogin} class="space-y-8">
+			<form on:submit={handleLogin} class="space-y-8">
 				<!-- Username Input -->
 				<label class="label">
 					<span class="label-text">Имя пользователя:</span>
@@ -88,7 +102,7 @@
 				<!-- Confirm Button -->
 				<div class="flex justify-center">
 					<button disabled={loading} class="btn preset-outlined-surface-500">
-						<span>{loading ? "Входим..." : "Войти"}</span>
+						<span>Войти</span>
 						<KeyRound size={18} />
 					</button>
 				</div>
@@ -96,5 +110,3 @@
 		</article>
 	</div>
 </div>
-
-<!-- Skeleton UI Toaster -->

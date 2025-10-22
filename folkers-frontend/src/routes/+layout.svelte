@@ -10,6 +10,9 @@
 	import Protected from "$lib/components/protected.svelte";
 	import { ADMIN_ROLE } from "$lib";
 
+	import { Toast } from "@skeletonlabs/skeleton-svelte";
+	import { toaster } from "$lib/stores/toaster";
+
 	let { children } = $props();
 
 	let authenticated = $derived(isAuthenticated);
@@ -27,8 +30,9 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<div>
-	{#if $authenticated && $user}
+<!-- Header Bar -->
+{#if $authenticated && $user}
+	<div>
 		<div class="flex gap-8">
 			<a href={resolve(`/users/${$user.username}`)} class="hover:text-blue-500">
 				{$user.username} ({$user.id.id.String}) | {$user.role}
@@ -44,7 +48,20 @@
 		</div>
 		<hr />
 		<br />
-	{/if}
+	</div>
+{/if}
 
-	{@render children?.()}
-</div>
+{@render children?.()}
+
+<!-- Skeleton UI Toaster -->
+<Toast.Group {toaster}>
+	{#snippet children(toast)}
+		<Toast {toast}>
+			<Toast.Message>
+				<Toast.Title>{toast.title}</Toast.Title>
+				<Toast.Description>{toast.description}</Toast.Description>
+			</Toast.Message>
+			<Toast.CloseTrigger />
+		</Toast>
+	{/snippet}
+</Toast.Group>
