@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { KeyRound } from "@lucide/svelte";
-	import { createToaster } from "@skeletonlabs/skeleton-svelte";
+	import { Toast, createToaster } from "@skeletonlabs/skeleton-svelte";
 
 	import { AuthService } from "$lib/services/auth.service";
 	import type { LoginCredentials } from "$lib/types/auth";
@@ -76,7 +76,7 @@
 				<label class="label">
 					<span class="label-text">Пароль:</span>
 					<input
-						type="text"
+						type="password"
 						bind:value={credentials.password}
 						placeholder="Введите пароль..."
 						required
