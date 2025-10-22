@@ -58,7 +58,7 @@
 <div class="flex min-h-screen items-center justify-center">
 	<!-- Skeleton UI Card -->
 	<div
-		class="dividy-y block max-w-md divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900"
+		class="dividy-y block max-w-md divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 drop-shadow-lg drop-shadow-surface-700/40"
 	>
 		<!-- Header -->
 		<header>
@@ -102,8 +102,8 @@
 				<!-- Confirm Button -->
 				<div class="flex justify-center">
 					<button disabled={loading} class="btn preset-outlined-surface-500">
-						<span>Войти</span>
 						<KeyRound size={18} />
+						<span>Войти</span>
 					</button>
 				</div>
 			</form>
