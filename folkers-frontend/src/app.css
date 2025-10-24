@@ -6,5 +6,5 @@
 @import "@skeletonlabs/skeleton/themes/wintry";
 
 * {
-  transition: ease-in-out 200ms;
+	transition: ease-in-out 200ms;
 }

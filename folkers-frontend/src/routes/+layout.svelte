@@ -29,6 +29,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<title>Folkers</title>
 </svelte:head>
 
 <!-- Header Bar -->
