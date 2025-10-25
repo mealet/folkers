@@ -8,6 +8,7 @@
 	import type { PersonRecord } from "$lib/types/person";
 
 	import Protected from "$lib/components/protected.svelte";
+	import Maybenot from "$lib/components/maybenot.svelte";
 	import { ADMIN_ROLE, EDITOR_ROLE } from "$lib";
 
 	import Fuse from "fuse.js";
@@ -122,15 +123,23 @@
 					<h1 class="text-lg font-semibold">{person.surname} {person.name} {person.patronymic}</h1>
 
 					<!-- Birthday -->
-					<div class="flex items-center space-x-1 text-surface-200">
+					<div class="flex items-center space-x-2 text-surface-200">
 						<Calendar size={17} />
-						<span class="text-[18px]">{new Date(person.birthday).toLocaleDateString("ru-RU")}</span>
+						<span class="text-[18px]">
+							<Maybenot prop={person.birthday}>
+								{new Date(person.birthday).toLocaleDateString("ru-RU")}
+							</Maybenot>
+						</span>
 					</div>
 
 					<!-- City -->
-					<div class="flex items-center space-x-1 text-surface-200">
+					<div class="flex items-center space-x-2 text-surface-200">
 						<Building2 size={17} />
-						<span class="text-[18px]">{person.city}</span>
+						<span class="text-[18px]">
+							<Maybenot prop={person.city}>
+								{person.city}
+							</Maybenot>
+						</span>
 					</div>
 
 					<!-- Summary Preview -->
