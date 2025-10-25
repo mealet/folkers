@@ -16,8 +16,8 @@
 
 	let { children } = $props();
 
-	let authenticated = $derived(isAuthenticated);
-	let user = $derived(loggedUser);
+	const authenticated = $derived(isAuthenticated);
+	const user = $derived(loggedUser);
 
 	async function handleLogout(event: Event): Promise<void> {
 		event.preventDefault();

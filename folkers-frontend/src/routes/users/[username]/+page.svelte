@@ -9,13 +9,14 @@
 	import type { User } from "$lib/types/auth";
 
 	const userId = page.params.username;
-	let user: User | null = null;
+	let user = $state<User | null>(null);
 
-	$: allowedToEdit =
+	const allowedToEdit = $derived(
 		user &&
-		$loggedUser &&
-		($loggedUser.username === user.created_by || $loggedUser.created_by === "system") &&
-		user.created_by !== "system";
+			$loggedUser &&
+			((user && $loggedUser.username === user.created_by) || $loggedUser.created_by === "system") &&
+			user.created_by !== "system"
+	);
 
 	onMount(async () => {
 		if (userId) user = await UserService.get_user(userId);
@@ -40,7 +41,9 @@
 		}
 	}
 
-	async function deleteUser() {
+	async function deleteUser(event: Event) {
+		event.preventDefault();
+
 		if (user && allowedToEdit) {
 			try {
 				await UserService.delete_user(user.username);
@@ -60,7 +63,7 @@
 		<p>Роль: <span class="underline">{user.role}</span></p>
 		<p>
 			Создан администратором:
-			<button class="cursor-pointer text-blue-600" on:click|preventDefault={gotoCreator}>
+			<button class="cursor-pointer text-blue-600" onclick={gotoCreator}>
 				{user.created_by}
 			</button>
 		</p>
@@ -74,7 +77,7 @@
 			>
 			<button
 				class="cursor-pointer border-1 border-black bg-red-500 p-1 text-white"
-				on:click|preventDefault={deleteUser}>Удалить</button
+				onclick={deleteUser}>Удалить</button
 			>
 		{/if}
 	</div>

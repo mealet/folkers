@@ -4,14 +4,14 @@
 	import { UserService } from "$lib/services/user.service";
 	import type { CreateUser } from "$lib/types/auth";
 
-	let payload: CreateUser = {
+	let payload: CreateUser = $state({
 		username: "",
 		password: "",
 		role: "",
 		created_by: "auto"
-	};
+	});
 
-	let errorMessage = "";
+	let errorMessage = $state("");
 
 	async function handleSubmit() {
 		try {
@@ -28,7 +28,7 @@
 	}
 </script>
 
-<form class="p-2" on:submit={handleSubmit}>
+<form class="p-2" onsubmit={handleSubmit}>
 	{#if errorMessage}
 		<p class="text-red-500">{errorMessage}</p>
 

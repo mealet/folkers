@@ -9,11 +9,18 @@
 	import Fuse from "fuse.js";
 	import Protected from "$lib/components/protected.svelte";
 
-	let users: User[] = [];
+	let users: User[] = $state([]);
 
-	let query = "";
-	let results: User[] = [];
-	let fuse = Fuse<User>;
+	let query = $state("");
+	let fuse = $state<Fuse<User> | null>(null);
+
+	const filteredResults = $derived.by((): User[] => {
+		if (fuse && query.trim()) {
+			return fuse.search(query).map((result: { item: User; refIndex: number }) => result.item);
+		} else {
+			return users;
+		}
+	});
 
 	onMount(async () => {
 		users = await UserService.list_users();
@@ -37,12 +44,6 @@
 			threshold: 0.3
 		});
 	});
-
-	$: if (fuse && query.trim()) {
-		results = fuse.search(query).map((result: { item: User; refIndex: number }) => result.item);
-	} else {
-		results = users;
-	}
 </script>
 
 <div class="p-2">
@@ -60,7 +61,7 @@
 	<br />
 
 	<ul>
-		{#each results as user (user.id.id.String)}
+		{#each filteredResults as user (user.id.id.String)}
 			<li>
 				- <a href={resolve(`/users/${user.username}`)}>{user.username} ({user.role})</a>
 			</li>

@@ -12,7 +12,7 @@
 		username: "",
 		password: ""
 	};
-	let loading = false;
+	let loading = $state(false);
 
 	async function handleLogin(): Promise<void> {
 		if (loading) return;
@@ -72,7 +72,7 @@
 			</div>
 
 			<!-- Login Form -->
-			<form on:submit={handleLogin} class="space-y-8">
+			<form onsubmit={handleLogin} class="space-y-8">
 				<!-- Username Input -->
 				<label class="label">
 					<span class="label-text">Имя пользователя:</span>

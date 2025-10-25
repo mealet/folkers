@@ -14,13 +14,13 @@
 	const AVATAR_WIDTH = "256px";
 	const AVATAR_HEIGHT = "256px";
 
-	let errorMessage = "";
+	let errorMessage = $state("");
 
-	let person: PersonRecord | null = null;
-	let payload: CreatePersonRecord | null = null;
+	let person = $state<PersonRecord | null>(null);
+	let payload = $state<CreatePersonRecord | null>();
 
-	let avatarFile: FileList | null = null;
-	let avatarImageDisplay = "";
+	let avatarFile = $state<FileList | null>(null);
+	let avatarImageDisplay = $state("");
 
 	onMount(async () => {
 		person = await PersonService.get_person(personId || "");
@@ -50,8 +50,10 @@
 		if (avatarFile) avatarImageDisplay = URL.createObjectURL(avatarFile[0]);
 	}
 
-	async function handleForm() {
-		if (!payload) return;
+	async function handleForm(event: Event) {
+		event.preventDefault();
+
+		if (!payload || !person) return;
 
 		// Uploading avatar
 		if (avatarFile) {
@@ -80,7 +82,7 @@
 
 <div>
 	{#if payload}
-		<form on:submit|preventDefault={handleForm} class="block p-5">
+		<form onsubmit={handleForm} class="block p-5">
 			<p class="text-red-500">{errorMessage}</p>
 
 			<br />
@@ -194,7 +196,7 @@
 							type="file"
 							class="border-1 border-black p-1"
 							bind:files={avatarFile}
-							on:change={updateAvatarPreview}
+							onchange={updateAvatarPreview}
 							accept={ACCEPTABLE_MEDIA_TYPES}
 						/>
 					</div>

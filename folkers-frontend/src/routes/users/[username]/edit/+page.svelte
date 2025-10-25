@@ -9,10 +9,10 @@
 
 	const userId = page.params.username;
 
-	let user: User | null = null;
-	let payload: CreateUser | null = null;
+	let user = $state<User | null>(null);
+	let payload = $state<CreateUser | null>(null);
 
-	let errorMessage = "";
+	let errorMessage = $state("");
 
 	onMount(async () => {
 		if (!userId) return;
@@ -44,7 +44,7 @@
 </script>
 
 {#if payload}
-	<form class="p-2" on:submit={handleSubmit}>
+	<form class="p-2" onsubmit={handleSubmit}>
 		{#if errorMessage}
 			<p class="text-red-500">{errorMessage}</p>
 
