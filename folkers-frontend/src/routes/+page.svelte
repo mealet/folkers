@@ -108,85 +108,91 @@
 		</div>
 
 		<!-- Persons Cards -->
-		{#each data as person (person.id)}
-			<a
-				class="block divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl hover:-translate-y-[3px]"
-				href={resolve(`/persons/${person.id.id.String}`)}
-			>
-				<header>
-					<img
-						src={person.avatar || "/no_avatar.png"}
-						alt="Аватар {person.name}"
-						class="aspect-video h-auto w-full object-cover"
-					/>
-				</header>
+		{#if persons.length > 0}
+			{#each data as person (person.id)}
+				<a
+					class="block divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl hover:-translate-y-[3px]"
+					href={resolve(`/persons/${person.id.id.String}`)}
+				>
+					<header>
+						<img
+							src={person.avatar || "/no_avatar.png"}
+							alt="Аватар {person.name}"
+							class="aspect-video h-auto w-full object-cover"
+						/>
+					</header>
 
-				<article class="space-y-2 p-3">
-					<!-- Header -->
-					<h1 class="text-lg font-semibold">{person.surname} {person.name} {person.patronymic}</h1>
+					<article class="space-y-2 p-3">
+						<!-- Header -->
+						<h1 class="text-lg font-semibold">
+							{person.surname}
+							{person.name}
+							{person.patronymic}
+						</h1>
 
-					<!-- Birthday -->
-					<div class="flex items-center space-x-2 text-surface-200">
-						<Calendar size={17} />
-						<span class="text-[18px]">
-							<Maybenot prop={person.birthday}>
-								{new Date(person.birthday).toLocaleDateString("ru-RU")}
-							</Maybenot>
-						</span>
-					</div>
+						<!-- Birthday -->
+						<div class="flex items-center space-x-2 text-surface-200">
+							<Calendar size={17} />
+							<span class="text-[18px]">
+								<Maybenot prop={person.birthday}>
+									{new Date(person.birthday).toLocaleDateString("ru-RU")}
+								</Maybenot>
+							</span>
+						</div>
 
-					<!-- City -->
-					<div class="flex items-center space-x-2 text-surface-200">
-						<Building2 size={17} />
-						<span class="text-[18px]">
-							<Maybenot prop={person.city}>
-								{person.city}
-							</Maybenot>
-						</span>
-					</div>
+						<!-- City -->
+						<div class="flex items-center space-x-2 text-surface-200">
+							<Building2 size={17} />
+							<span class="text-[18px]">
+								<Maybenot prop={person.city}>
+									{person.city}
+								</Maybenot>
+							</span>
+						</div>
 
-					<!-- Summary Preview -->
-					<div>
-						<p>
-							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-							{@html person.summary}
-						</p>
-					</div>
-				</article>
-			</a>
-		{/each}
+						<!-- Summary Preview -->
+						<div>
+							<p>
+								<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+								{@html person.summary}
+							</p>
+						</div>
+					</article>
+				</a>
+			{/each}
 
-		<!-- Centering Div -->
-		<div class="flex items-center justify-center">
-			<!-- Pagination -->
-			<Pagination
-				count={persons.length}
-				pageSize={PAGE_SIZE}
-				{page}
-				onPageChange={(event) => (page = event.page)}
-			>
-				<Pagination.PrevTrigger>
-					<ArrowLeftIcon class="size-4" />
-				</Pagination.PrevTrigger>
+			<!-- Centering Div -->
+			<div class="flex items-center justify-center">
+				<!-- Pagination -->
+				<Pagination
+					count={persons.length}
+					pageSize={PAGE_SIZE}
+					{page}
+					onPageChange={(event) => (page = event.page)}
+				>
+					<Pagination.PrevTrigger>
+						<ArrowLeftIcon class="size-4" />
+					</Pagination.PrevTrigger>
 
-				<Pagination.Context>
-					{#snippet children(pagination)}
-						{#each pagination().pages as page, index (page)}
-							{#if page.type === "page"}
-								<Pagination.Item {...page}>
-									{page.value}
-								</Pagination.Item>
-							{:else}
-								<Pagination.Ellipsis {index}>&#8230</Pagination.Ellipsis>
-							{/if}
-						{/each}
-					{/snippet}
-				</Pagination.Context>
+					<Pagination.Context>
+						{#snippet children(pagination)}
+							{#each pagination().pages as page, index (page)}
+								{#if page.type === "page"}
+									<Pagination.Item {...page}>
+										{page.value}
+									</Pagination.Item>
+								{:else}
+									<Pagination.Ellipsis {index}>&#8230</Pagination.Ellipsis>
+								{/if}
+							{/each}
+						{/snippet}
+					</Pagination.Context>
 
-				<Pagination.NextTrigger>
-					<ArrowRightIcon class="size-4" />
-				</Pagination.NextTrigger>
-			</Pagination>
-		</div>
+					<Pagination.NextTrigger>
+						<ArrowRightIcon class="size-4" />
+					</Pagination.NextTrigger>
+				</Pagination>
+			</div>
+		{/if}
 	</div>
 </div>
