@@ -12,7 +12,14 @@
 
 	import Fuse from "fuse.js";
 	import { Pagination } from "@skeletonlabs/skeleton-svelte";
-	import { Building2, Calendar, SearchIcon, ArrowLeftIcon, ArrowRightIcon } from "@lucide/svelte";
+	import {
+		Building2,
+		Calendar,
+		SearchIcon,
+		ArrowLeftIcon,
+		ArrowRightIcon,
+		Plus
+	} from "@lucide/svelte";
 
 	const SUMMARY_PREVIEW_LENGTH = 250;
 	const PAGE_SIZE = 5;
@@ -75,22 +82,39 @@
 	<div class="w-2xl space-y-4">
 		<p class="text-xl font-bold">Список людей:</p>
 
-		<!-- Search Input -->
-		<div class="input-group grid-cols-[auto_1fr_auto]">
-			<div class="ig-cell preset-tonal">
-				<SearchIcon size={16} />
+		<!-- Interaction Line -->
+		<div class="grid w-full grid-cols-[1fr_auto] gap-2">
+			<!-- Search Input -->
+			<div class="input-group grid-cols-[auto_1fr_auto]">
+				<div class="ig-cell preset-tonal">
+					<SearchIcon size={16} />
+				</div>
+				<input
+					class="ig-input"
+					type="search"
+					placeholder="Фамилия Имя Отчество"
+					bind:value={query}
+				/>
 			</div>
-			<input class="ig-input" type="search" placeholder="Фамилия Имя Отчество" bind:value={query} />
+
+			<!-- Create Button -->
+			<Protected requiredRoles={[EDITOR_ROLE]} adminRoles={[ADMIN_ROLE]}>
+				<a href={resolve("/persons/create")} class="btn-icon preset-filled"><Plus size={18} /></a>
+			</Protected>
 		</div>
 
 		<!-- Persons Cards -->
 		{#each data as person (person.id)}
 			<a
-				class="dividy-y block divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 drop-shadow-lg"
+				class="block divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl hover:-translate-y-[3px]"
 				href={resolve(`/persons/${person.id.id.String}`)}
 			>
 				<header>
-					<img src={person.avatar} alt="" />
+					<img
+						src={person.avatar || "/no_avatar.png"}
+						alt="Аватар {person.name}"
+						class="aspect-video h-auto w-full object-cover"
+					/>
 				</header>
 
 				<article class="space-y-2 p-3">
@@ -152,30 +176,3 @@
 		</Pagination>
 	</div>
 </div>
-
-<!-- <div class="p-2"> -->
-<!-- 	<Protected requiredRoles={[EDITOR_ROLE]} adminRoles={[ADMIN_ROLE]}> -->
-<!-- 		<a href={resolve("/persons/create")} -->
-<!-- 			><button class="border-1 border-black p-1">Создать</button></a -->
-<!-- 		> -->
-<!---->
-<!-- 		<br /> -->
-<!-- 		<br /> -->
-<!-- 	</Protected> -->
-<!---->
-<!-- 	<input type="text" bind:value={query} placeholder="Поиск..." class="rounded border p-2" /> -->
-<!---->
-<!-- 	<br /> -->
-<!-- 	<br /> -->
-<!---->
-<!-- 	<h3>Список людей:</h3> -->
-<!-- 	<ul> -->
-<!-- 		{#each results as person (person.id)} -->
-<!-- 			<li> -->
-<!-- 				- <a href={resolve(`/persons/${person.id.id.String}`)} -->
-<!-- 					>{person.surname} {person.name} {person.patronymic}</a -->
-<!-- 				> -->
-<!-- 			</li> -->
-<!-- 		{/each} -->
-<!-- 	</ul> -->
-<!-- </div> -->
