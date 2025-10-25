@@ -144,35 +144,37 @@
 			</a>
 		{/each}
 
-		<!-- Pagination -->
-		<Pagination
-			count={persons.length}
-			pageSize={PAGE_SIZE}
-			{page}
-			onPageChange={(event) => (page = event.page)}
-			class="flex w-full justify-between"
-		>
-			<Pagination.PrevTrigger>
-				<ArrowLeftIcon class="size-4" />
-			</Pagination.PrevTrigger>
+		<!-- Centering Div -->
+		<div class="flex items-center justify-center">
+			<!-- Pagination -->
+			<Pagination
+				count={persons.length}
+				pageSize={PAGE_SIZE}
+				{page}
+				onPageChange={(event) => (page = event.page)}
+			>
+				<Pagination.PrevTrigger>
+					<ArrowLeftIcon class="size-4" />
+				</Pagination.PrevTrigger>
 
-			<Pagination.Context>
-				{#snippet children(pagination)}
-					{#each pagination().pages as page, index (page)}
-						{#if page.type === "page"}
-							<Pagination.Item {...page}>
-								{page.value}
-							</Pagination.Item>
-						{:else}
-							<Pagination.Ellipsis {index}>&#8230</Pagination.Ellipsis>
-						{/if}
-					{/each}
-				{/snippet}
-			</Pagination.Context>
+				<Pagination.Context>
+					{#snippet children(pagination)}
+						{#each pagination().pages as page, index (page)}
+							{#if page.type === "page"}
+								<Pagination.Item {...page}>
+									{page.value}
+								</Pagination.Item>
+							{:else}
+								<Pagination.Ellipsis {index}>&#8230</Pagination.Ellipsis>
+							{/if}
+						{/each}
+					{/snippet}
+				</Pagination.Context>
 
-			<Pagination.NextTrigger>
-				<ArrowRightIcon class="size-4" />
-			</Pagination.NextTrigger>
-		</Pagination>
+				<Pagination.NextTrigger>
+					<ArrowRightIcon class="size-4" />
+				</Pagination.NextTrigger>
+			</Pagination>
+		</div>
 	</div>
 </div>
