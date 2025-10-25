@@ -81,7 +81,10 @@
 <div class="flex items-center justify-center p-4">
 	<!-- Content Div -->
 	<div class="w-2xl space-y-4">
-		<p class="text-xl font-bold">Список людей:</p>
+		<div>
+			<p class="text-xl font-bold">Список людей:</p>
+			<p class="text-lg">Всего: {persons.length}</p>
+		</div>
 
 		<!-- Interaction Line -->
 		<div class="grid w-full grid-cols-[1fr_auto] gap-2">
