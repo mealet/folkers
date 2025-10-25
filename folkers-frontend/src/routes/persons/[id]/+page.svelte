@@ -20,6 +20,8 @@
 		FrownIcon,
 		LaughIcon,
 		MapPinHouse,
+		PenIcon,
+		TrashIcon,
 		UserPenIcon
 	} from "@lucide/svelte";
 
@@ -30,12 +32,12 @@
 
 	const personId = page.params.id;
 
-	let person: PersonRecord | null = null;
-	let summaryRendered: string = "";
-	let pastRendered: string = "";
+	let person: PersonRecord | null = $state(null);
+	let summaryRendered: string = $state("");
+	let pastRendered: string = $state("");
 
-	let avatarURL: string = "";
-	let mediaURLs: string[] = [];
+	let avatarURL: string = $state("");
+	let mediaURLs: string[] = $state([]);
 
 	onMount(async () => {
 		person = await PersonService.get_person(personId || "");
@@ -91,6 +93,26 @@
 			</header>
 
 			<article class="space-y-3 p-3">
+				<!-- Edit/Delete Section -->
+				<Protected
+					requiredRoles={[EDITOR_ROLE]}
+					adminRoles={[ADMIN_ROLE]}
+					requiredUsername={person.author}
+				>
+					<div class="float-right">
+						<a
+							href={resolve(`/persons/${personId}/edit`)}
+							class="btn-icon preset-outlined-surface-500"
+						>
+							<PenIcon />
+						</a>
+
+						<button onclick={handleDelete} class="btn-icon preset-outlined-error-500">
+							<TrashIcon />
+						</button>
+					</div>
+				</Protected>
+
 				<!-- Title -->
 				<h1 class="text-lg font-semibold">{person.surname} {person.name} {person.patronymic}</h1>
 
