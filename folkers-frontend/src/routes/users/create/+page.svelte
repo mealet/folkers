@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { toaster } from "$lib/stores/toaster";
 	import { selectableRoles } from "$lib";
+
 	import { ApiClientError } from "$lib/api/error";
 	import { UserService } from "$lib/services/user.service";
 	import type { CreateUser } from "$lib/types/auth";
@@ -7,11 +9,9 @@
 	let payload: CreateUser = $state({
 		username: "",
 		password: "",
-		role: "",
+		role: "watcher",
 		created_by: "auto"
 	});
-
-	let errorMessage = $state("");
 
 	async function handleSubmit() {
 		try {
@@ -20,51 +20,72 @@
 			window.location.href = `/users/${new_user.username}`;
 		} catch (error) {
 			if (error instanceof ApiClientError) {
-				errorMessage = `Ошибка: ${error.describe()}`;
+				toaster.error({
+					title: "Ошибка",
+					description: error.describe()
+				});
 			} else {
-				errorMessage = `Неизвестная ошибка: ${error}`;
+				toaster.error({
+					title: "Ошибка",
+					description: error
+				});
 			}
 		}
 	}
 </script>
 
-<form class="p-2" onsubmit={handleSubmit}>
-	{#if errorMessage}
-		<p class="text-red-500">{errorMessage}</p>
+<!-- Centering Div -->
+<div class="flex items-center justify-center p-4">
+	<!-- Content Div -->
+	<div class="space-y-4">
+		<p class="text-xl font-bold">Создание нового пользователя:</p>
 
-		<br />
-	{/if}
+		<!-- Form Card -->
+		<div
+			class="block w-lg divide-y divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl"
+		>
+			<article>
+				<form class="space-y-4 p-4" onsubmit={handleSubmit}>
+					<!-- Username -->
+					<label class="label">
+						<span class="label-text">Имя пользователя</span>
+						<input
+							class="input"
+							type="text"
+							placeholder="Введите имя пользователя..."
+							bind:value={payload.username}
+						/>
+					</label>
 
-	<input
-		type="text"
-		placeholder="Имя пользователя"
-		bind:value={payload.username}
-		required
-		class="border-1 border-black p-1"
-	/>
+					<!-- Password -->
+					<label class="label">
+						<span class="label-text">Пароль</span>
+						<input
+							class="input"
+							type="password"
+							placeholder="Введите пароль..."
+							bind:value={payload.password}
+						/>
+					</label>
 
-	<br />
-	<br />
+					<!-- Role -->
+					<label class="label">
+						<span class="label-text">Роль</span>
 
-	<input
-		type="password"
-		placeholder="Пароль"
-		bind:value={payload.password}
-		required
-		class="border-1 border-black p-1"
-	/>
+						<select class="select" bind:value={payload.role}>
+							{#each selectableRoles as role (role.id)}
+								<option value={role.id}>{role.label}</option>
+							{/each}
+						</select>
+					</label>
 
-	<br />
-	<br />
-
-	<select bind:value={payload.role} class="border-1 border-black p-1" required>
-		{#each selectableRoles as role (role.id)}
-			<option value={role.id}>{role.label}</option>
-		{/each}
-	</select>
-
-	<br />
-	<br />
-
-	<button type="submit" class="border-1 border-black p-1">Создать</button>
-</form>
+					<!-- Centering Div -->
+					<div class="flex items-center justify-center">
+						<!-- Submit Button -->
+						<button class="btn preset-filled-primary-500"> Создать </button>
+					</div>
+				</form>
+			</article>
+		</div>
+	</div>
+</div>
