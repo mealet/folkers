@@ -72,6 +72,11 @@
 				<Toast.Title>{toast.title}</Toast.Title>
 				<Toast.Description>{toast.description}</Toast.Description>
 			</Toast.Message>
+
+			{#if toast.action}
+				<Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>
+			{/if}
+
 			<Toast.CloseTrigger />
 		</Toast>
 	{/snippet}

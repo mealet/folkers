@@ -2,6 +2,7 @@
 	import { page } from "$app/state";
 	import { resolve } from "$app/paths";
 	import { onMount } from "svelte";
+	import { toaster } from "$lib/stores/toaster";
 
 	import { PersonService } from "$lib/services/person.service";
 	import type { PersonRecord } from "$lib/types/person";
@@ -26,6 +27,7 @@
 	} from "@lucide/svelte";
 
 	import { Dialog, Portal } from "@skeletonlabs/skeleton-svelte";
+	import { ApiClientError } from "$lib/api/error";
 
 	const MEDIA_WIDTH = "256px";
 	const MEDIA_HEIGHT = "256px";
@@ -66,12 +68,32 @@
 	});
 
 	async function handleDelete() {
-		if (person) {
-			try {
-				await PersonService.delete_person(person.id.id.String);
-				window.location.href = "/";
-			} catch (error) {
-				console.error(error);
+		try {
+			toaster.error({
+				title: "Вы уверены?",
+				description: "Подтвердите удаление записи",
+				duration: 8000,
+				action: {
+					label: "Удалить",
+					onClick: async () => {
+						if (!person) return;
+
+						await PersonService.delete_person(person.id.id.String);
+						window.location.href = "/";
+					}
+				}
+			});
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error.describe()
+				});
+			} else {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error
+				});
 			}
 		}
 	}
