@@ -107,9 +107,7 @@
 				<!-- Creation Date -->
 				<div class="flex items-center space-x-2 text-surface-200">
 					<CalendarIcon size={17} />
-					<a href={resolve(`/users/${user.created_by}`)} class="hover:text-primary-400"
-						>{new Date(user.creation_datetime).toLocaleString("ru-RU")}</a
-					>
+					<p>{new Date(user.creation_datetime).toLocaleString("ru-RU")}</p>
 				</div>
 
 				<!-- Role -->
