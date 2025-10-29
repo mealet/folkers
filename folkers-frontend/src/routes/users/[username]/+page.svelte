@@ -2,9 +2,11 @@
 	import { page } from "$app/state";
 	import { onMount } from "svelte";
 	import { resolve } from "$app/paths";
+	import { toaster } from "$lib/stores/toaster";
 
 	import { loggedUser } from "$lib/stores/auth";
 	import { UserService } from "$lib/services/user.service";
+	import { ApiClientError } from "$lib/api/error";
 
 	import type { User } from "$lib/types/auth";
 	import {
@@ -41,13 +43,32 @@
 	async function deleteUser(event: Event) {
 		event.preventDefault();
 
-		if (user && allowedToEdit) {
-			try {
-				await UserService.delete_user(user.username);
+		try {
+			toaster.error({
+				title: "Вы уверены?",
+				description: "Подтвердите удаление пользователя",
+				duration: 8000,
+				action: {
+					label: "Удалить",
+					onClick: async () => {
+						if (!user || !allowedToEdit) return;
 
-				window.location.href = "/users";
-			} catch (error) {
-				console.error("Error deleting user: ", error);
+						await UserService.delete_user(user.username);
+						window.location.href = "/users";
+					}
+				}
+			});
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error.describe()
+				});
+			} else {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error
+				});
 			}
 		}
 	}
