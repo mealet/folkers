@@ -72,6 +72,7 @@
 								type="text"
 								placeholder="Введите имя пользователя..."
 								bind:value={payload.username}
+								required
 							/>
 						</label>
 

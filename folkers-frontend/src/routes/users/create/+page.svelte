@@ -54,6 +54,7 @@
 							type="text"
 							placeholder="Введите имя пользователя..."
 							bind:value={payload.username}
+							required
 						/>
 					</label>
 
@@ -65,6 +66,7 @@
 							type="password"
 							placeholder="Введите пароль..."
 							bind:value={payload.password}
+							required
 						/>
 					</label>
 
