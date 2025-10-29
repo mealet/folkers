@@ -14,7 +14,10 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 	const isAdmin = await adminGuardServer(token);
 
 	if (!isAdmin) {
-		throw error(403, new ApiClientError("", 403).describe());
+		throw error(403, {
+			message: new ApiClientError("", 403).describe(),
+			status: 403
+		});
 	}
 
 	return {};
