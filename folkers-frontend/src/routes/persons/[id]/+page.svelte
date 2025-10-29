@@ -119,7 +119,7 @@
 				<!-- Author -->
 				<div class="flex items-center space-x-2 text-surface-200">
 					<UserPenIcon size={17} />
-					<a href={resolve(`/users/${person.author}`)} class="hover:text-primary-400"
+					<a href={resolve(`/users/${person.author}`)} class="font-mono hover:text-primary-400"
 						>{person.author}</a
 					>
 				</div>

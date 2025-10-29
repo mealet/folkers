@@ -106,7 +106,7 @@
 								window.location.href = resolve(`/users/${user.created_by}`);
 							}
 						}}
-						class="hover:text-primary-400">{user.created_by}</button
+						class="font-mono hover:text-primary-400">{user.created_by}</button
 					>
 				</div>
 			</article>

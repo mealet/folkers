@@ -13,7 +13,7 @@
 				<div class="flex space-x-3">
 					<h1 class="text-xl font-medium">Ошибка</h1>
 					<span class="badge preset-filled-error-500 pt-1 pb-1 align-middle font-medium"
-						>{page.error.status}</span
+						>{page.error.status || "500"}</span
 					>
 				</div>
 
