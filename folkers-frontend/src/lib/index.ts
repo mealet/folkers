@@ -2,6 +2,9 @@ export const WATCHER_ROLE = "watcher";
 export const EDITOR_ROLE = "editor";
 export const ADMIN_ROLE = "admin";
 
+import remarkBreaks from "remark-breaks";
+import rehypeExternalLinks from "rehype-external-links";
+
 export const rolesOrder: Record<string, number> = {
 	[WATCHER_ROLE]: 0,
 	[EDITOR_ROLE]: 1,

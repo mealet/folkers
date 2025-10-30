@@ -44,10 +44,14 @@
 	onMount(async () => {
 		person = await PersonService.get_person(personId || "");
 
-		const summaryRenderResult = await compile(person.summary);
+		const summaryCode = person.summary
+			.replace(/([^>])\n(?!\n)/g, "$1<br>")
+			.replace(/\n{2,}/g, "</p><p>");
+		const summaryRenderResult = await compile(summaryCode);
 		summaryRendered = summaryRenderResult?.code || person.summary;
 
-		const pastRenderResult = await compile(person.past);
+		const pastCode = person.past.replace(/([^>])\n(?!\n)/g, "$1<br>").replace(/\n{2,}/g, "</p><p>");
+		const pastRenderResult = await compile(pastCode);
 		pastRendered = pastRenderResult?.code || person.past;
 
 		if (person.avatar) {
