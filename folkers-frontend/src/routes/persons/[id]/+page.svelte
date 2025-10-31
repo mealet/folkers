@@ -249,7 +249,7 @@
 											width={MEDIA_WIDTH}
 											height={MEDIA_HEIGHT}
 											alt=""
-											class="cursor-pointer rounded-md hover:opacity-70"
+											class="aspect-video h-auto cursor-pointer rounded-md object-cover hover:opacity-70"
 										/>
 									</Dialog.Trigger>
 
@@ -257,15 +257,13 @@
 										<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/50" />
 										<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center">
 											<Dialog.Content class="w-5xl space-y-2 card bg-surface-100-900 p-4 shadow-xl">
-												<!-- <Dialog.CloseTrigger class="group float-right"> -->
-												<!-- 	<XIcon size={20} class="group-hover:text-surface-200" /> -->
-												<!-- </Dialog.CloseTrigger> -->
-
-												<img
-													src={mediaURL}
-													alt=""
-													class="aspect-video h-auto w-full cursor-pointer rounded-md object-cover"
-												/>
+												<Dialog.CloseTrigger class="group float-right">
+													<img
+														src={mediaURL}
+														alt=""
+														class="aspect-video h-auto w-full cursor-pointer rounded-md object-cover"
+													/>
+												</Dialog.CloseTrigger>
 											</Dialog.Content>
 										</Dialog.Positioner>
 									</Portal>
@@ -283,64 +281,3 @@
 		</span>
 	{/if}
 </div>
-
-<!-- {#if person} -->
-<!-- 	<div> -->
-<!-- 		<Protected -->
-<!-- 			requiredRoles={[EDITOR_ROLE]} -->
-<!-- 			requiredUsername={person.author} -->
-<!-- 			adminRoles={[ADMIN_ROLE]} -->
-<!-- 		> -->
-<!-- 			<a href={resolve(`/persons/${personId}/edit`)} -->
-<!-- 				><button type="submit" class="border-1 border-black p-1">Редактировать</button></a -->
-<!-- 			> -->
-<!-- 			<button -->
-<!-- 				class="border-1 border-black bg-red-500 p-1 text-white" -->
-<!-- 				on:click|preventDefault={handleDelete}>Удалить</button -->
-<!-- 			> -->
-<!---->
-<!-- 			<br /> -->
-<!-- 			<br /> -->
-<!-- 		</Protected> -->
-<!---->
-<!-- 		<div> -->
-<!-- 			<img src={avatarURL} alt="Avatar Error" width="{AVATAR_WIDTH}," height={AVATAR_HEIGHT} /> -->
-<!-- 		</div> -->
-<!---->
-<!-- 		<br /> -->
-<!-- 		<hr /> -->
-<!---->
-<!-- 		<h1>{person.surname} {person.name} {person.patronymic}</h1> -->
-<!-- 		<h3>- Дата рождения: {new Date(person.birthday).toLocaleDateString("ru-RU")}</h3> -->
-<!-- 		<h3>- Город: {person.city}</h3> -->
-<!-- 		<h3>- Предполагаемый адрес: {person.intented_address}</h3> -->
-<!---->
-<!-- 		<h3>- Описание:</h3> -->
-<!-- 		<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-<!-- 		{@html summaryRendered} -->
-<!---->
-<!-- 		<h3>- Прошлое:</h3> -->
-<!-- 		<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-<!-- 		{@html pastRendered} -->
-<!---->
-<!-- 		<h3>- Хорошие черты: {person.traits_good}</h3> -->
-<!-- 		<h3>- Плохие черты: {person.traits_bad}</h3> -->
-<!---->
-<!-- 		<h3> -->
-<!-- 			- Автор записи: <a href={resolve(`/users/${person.author}`)} class="text-blue-500" -->
-<!-- 				>{person.author}</a -->
-<!-- 			> -->
-<!-- 		</h3> -->
-<!---->
-<!-- 		<hr /> -->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<div class="flex gap-4"> -->
-<!-- 			{#each mediaURLs as mediaURL, index (index)} -->
-<!-- 				<img src={mediaURL} width="{MEDIA_WIDTH}," height={MEDIA_HEIGHT} alt="Media Error" /> -->
-<!-- 			{/each} -->
-<!-- 		</div> -->
-<!-- 	</div> -->
-<!-- {:else} -->
-<!-- 	<p>No Content</p> -->
-<!-- {/if} -->
