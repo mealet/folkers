@@ -8,7 +8,11 @@
 
 	import { DatePicker, Portal } from "@skeletonlabs/skeleton-svelte";
 	import { SegmentedControl } from "@skeletonlabs/skeleton-svelte";
-	import { EyeIcon, PencilIcon } from "@lucide/svelte";
+	import { FileUpload, useFileUpload } from "@skeletonlabs/skeleton-svelte";
+
+	import { EyeIcon, ImageIcon, PencilIcon } from "@lucide/svelte";
+
+	const id = $props.id();
 
 	let payload: CreatePersonRecord = $state({
 		name: "",
@@ -46,6 +50,11 @@
 		const result = await renderMarkdown(code);
 
 		return result;
+	});
+
+	const avatarUpload = useFileUpload({
+		id: `${id}-AVATAR`,
+		accept: ACCEPTABLE_MEDIA_TYPES
 	});
 
 	let avatarFile: FileList | null = $state(null);
@@ -409,6 +418,35 @@
 									{/await}
 								</div>
 							{/if}
+						</div>
+					</label>
+
+					<!-- Avatar Upload -->
+
+					<label class="label">
+						<span class="label-text text-lg">Аватар:</span>
+						<div class="grid w-full gap-4">
+							<FileUpload.Provider value={avatarUpload}>
+								<FileUpload.Dropzone>
+									<ImageIcon class="size-10" />
+									<span>Выберите или перенесите фото сюда</span>
+									<FileUpload.Trigger>Обзор</FileUpload.Trigger>
+									<FileUpload.HiddenInput />
+								</FileUpload.Dropzone>
+								<FileUpload.ItemGroup>
+									<FileUpload.Context>
+										{#snippet children(fileUpload)}
+											{#each fileUpload().acceptedFiles as file (file.name)}
+												<FileUpload.Item {file}>
+													<FileUpload.ItemName>{file.name}</FileUpload.ItemName>
+													<FileUpload.ItemSizeText>{file.size} bytes</FileUpload.ItemSizeText>
+													<FileUpload.ItemDeleteTrigger />
+												</FileUpload.Item>
+											{/each}
+										{/snippet}
+									</FileUpload.Context>
+								</FileUpload.ItemGroup>
+							</FileUpload.Provider>
 						</div>
 					</label>
 
