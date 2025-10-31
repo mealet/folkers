@@ -109,7 +109,7 @@
 				<img
 					src={avatarURL || "/no_avatar.png"}
 					alt="Аватар {person.name}"
-					class="aspect-video h-auto w-full cursor-pointer object-cover"
+					class="aspect-video h-auto w-full object-cover"
 				/>
 			</header>
 

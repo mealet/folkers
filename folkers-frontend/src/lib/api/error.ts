@@ -17,6 +17,6 @@ export class ApiClientError extends Error {
 			500: "Неизвестная ошибка на стороне сервера"
 		};
 
-		return messages[this.status ?? -1] ?? "Неизвестная ошибка";
+		return messages[this.status ?? -1] ?? `Неизвестная ошибка c кодом ${this.status ?? -1}`;
 	}
 }

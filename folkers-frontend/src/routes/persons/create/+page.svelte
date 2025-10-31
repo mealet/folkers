@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { ACCEPTABLE_MEDIA_TYPES, renderMarkdown } from "$lib";
+	import { toaster } from "$lib/stores/toaster";
+
 	import { ApiClientError } from "$lib/api/error";
 	import type { CreatePersonRecord } from "$lib/types/person";
 
@@ -11,6 +12,7 @@
 	import { FileUpload, useFileUpload } from "@skeletonlabs/skeleton-svelte";
 
 	import { EyeIcon, ImageIcon, PencilIcon } from "@lucide/svelte";
+	import { ACCEPTABLE_MEDIA_TYPES, renderMarkdown } from "$lib";
 
 	const id = $props.id();
 
@@ -19,7 +21,7 @@
 		surname: "",
 		patronymic: "",
 
-		birthday: "",
+		birthday: "01.01.2000",
 		city: "",
 		intented_address: "",
 
@@ -52,29 +54,32 @@
 		return result;
 	});
 
+	let avatarFile: File | null = $state(null);
+	let avatarURL: string = $state("");
+
 	const avatarUpload = useFileUpload({
 		id: `${id}-AVATAR`,
-		accept: ACCEPTABLE_MEDIA_TYPES
-	});
+		accept: ACCEPTABLE_MEDIA_TYPES,
+		maxFiles: 1,
 
-	let avatarFile: FileList | null = $state(null);
-	let avatarURL: string = $state("");
+		onFileAccept: (props) => {
+			const selectedFile = props.files?.[0];
+			if (!selectedFile) return;
+
+			avatarFile = selectedFile;
+
+			const reader = new FileReader();
+
+			reader.onload = (e) => {
+				avatarURL = e.target?.result as string;
+			};
+
+			reader.readAsDataURL(selectedFile);
+		}
+	});
 
 	let mediaFiles: FileList | null = $state(null);
 	let mediaURLS: string[] = $state([""]);
-
-	async function handleMediaInput(index: number, event: Event) {
-		event.preventDefault();
-
-		const target = event.target as HTMLInputElement;
-		const value = target.value;
-
-		mediaURLS[index] = value;
-
-		if (index === mediaURLS.length - 1 && value.trim() !== "") {
-			mediaURLS = [...mediaURLS, ""];
-		}
-	}
 
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
@@ -82,10 +87,14 @@
 		// Uploading avatar
 		if (avatarFile) {
 			try {
-				payload.avatar = await MediaService.upload(avatarFile[0]);
+				payload.avatar = await MediaService.upload(avatarFile);
 			} catch (error) {
-				console.error(error);
-				payload.avatar = "NONE";
+				const errorDescription = error instanceof ApiClientError ? error.describe() : error;
+
+				toaster.error({
+					title: "Ошибка загрузки аватара",
+					description: errorDescription
+				});
 			}
 		} else {
 			payload.avatar = avatarURL;
@@ -100,7 +109,12 @@
 					const hash = await MediaService.upload(mediaFile);
 					payloadMedia.push(hash);
 				} catch (error) {
-					console.error("Error Uploading Media: ", error);
+					const errorDescription = error instanceof ApiClientError ? error.describe() : error;
+
+					toaster.error({
+						title: "Ошибка загрузки медиа",
+						description: errorDescription
+					});
 				}
 			}
 		}
@@ -119,11 +133,12 @@
 
 			window.location.href = `/persons/${new_person.id.id.String}`;
 		} catch (error) {
-			if (error instanceof ApiClientError) {
-				console.error(error);
-			} else {
-				console.error(error);
-			}
+			const errorDescription = error instanceof ApiClientError ? error.describe() : error;
+
+			toaster.error({
+				title: "Ошибка создания записи",
+				description: errorDescription
+			});
 		}
 	}
 </script>
@@ -428,10 +443,18 @@
 						<div class="grid w-full gap-4">
 							<FileUpload.Provider value={avatarUpload}>
 								<FileUpload.Dropzone>
-									<ImageIcon class="size-10" />
-									<span>Выберите или перенесите фото сюда</span>
-									<FileUpload.Trigger>Обзор</FileUpload.Trigger>
-									<FileUpload.HiddenInput />
+									{#if avatarUpload().acceptedFiles.length < 1}
+										<ImageIcon class="size-10" />
+										<span>Выберите или перенесите фото сюда</span>
+										<FileUpload.Trigger>Обзор</FileUpload.Trigger>
+										<FileUpload.HiddenInput />
+									{:else}
+										<img
+											src={avatarURL}
+											alt="Selected Avatar"
+											class="aspect-video h-auto w-full rounded-md object-cover"
+										/>
+									{/if}
 								</FileUpload.Dropzone>
 								<FileUpload.ItemGroup>
 									<FileUpload.Context>
@@ -439,7 +462,9 @@
 											{#each fileUpload().acceptedFiles as file (file.name)}
 												<FileUpload.Item {file}>
 													<FileUpload.ItemName>{file.name}</FileUpload.ItemName>
-													<FileUpload.ItemSizeText>{file.size} bytes</FileUpload.ItemSizeText>
+													<FileUpload.ItemSizeText
+														>{(file.size / 1024 / 1024).toFixed(3)} megabytes</FileUpload.ItemSizeText
+													>
 													<FileUpload.ItemDeleteTrigger />
 												</FileUpload.Item>
 											{/each}
