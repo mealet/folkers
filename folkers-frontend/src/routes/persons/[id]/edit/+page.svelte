@@ -11,9 +11,10 @@
 	import { MediaService } from "$lib/services/media.service";
 	import { PersonService } from "$lib/services/person.service";
 
-	import { DatePicker, Portal } from "@skeletonlabs/skeleton-svelte";
+	import { DatePicker, Portal, parseDate } from "@skeletonlabs/skeleton-svelte";
 	import { SegmentedControl } from "@skeletonlabs/skeleton-svelte";
 	import { FileUpload, useFileUpload } from "@skeletonlabs/skeleton-svelte";
+	import { Dialog } from "@skeletonlabs/skeleton-svelte";
 
 	import { EyeIcon, ImageIcon, ImagesIcon, PencilIcon } from "@lucide/svelte";
 	import { ACCEPTABLE_MEDIA_TYPES, renderMarkdown } from "$lib";
@@ -25,6 +26,12 @@
 
 	let person = $state<PersonRecord | null>(null);
 	let payload = $state<CreatePersonRecord | null>();
+
+	let updatedBirthday = $derived.by(() => {
+		if (!person) return [];
+
+		return [parseDate(new Date(person.birthday))];
+	});
 
 	let summaryCurrentState: string | null = $state("edit");
 	let summaryMarkdownPreview = $derived.by(async () => {
@@ -48,6 +55,7 @@
 
 	let avatarFile: File | null = $state(null);
 	let avatarPreviewURL: string = $state("");
+	let avatarChanged: boolean = $state(false);
 
 	const avatarUpload = useFileUpload({
 		id: `${id}-AVATAR`,
@@ -63,6 +71,7 @@
 			}
 
 			avatarFile = selectedFile;
+			avatarChanged = true;
 
 			const reader = new FileReader();
 
@@ -75,6 +84,7 @@
 	});
 
 	let mediaFiles: File[] | null = $state(null);
+	let mediaChanged: boolean = $state(false);
 
 	const mediaUpload = useFileUpload({
 		id: `${id}-MEDIA`,
@@ -84,6 +94,7 @@
 
 		onFileChange: (props) => {
 			mediaFiles = props.acceptedFiles.length > 0 ? props.acceptedFiles : null;
+			mediaChanged = true;
 		}
 	});
 
@@ -124,46 +135,107 @@
 			});
 
 			avatarUpload().setFiles([avatarFileObj]);
+			avatarChanged = false;
+		}
+
+		if (payload.media?.length) {
+			let files = [];
+
+			for (const hash of payload.media) {
+				const fileBlob = await MediaService.get_blob(hash);
+
+				if (fileBlob) {
+					const fileObject = new File(
+						[fileBlob],
+						`${truncatePreview(hash.slice(2), 18)} (нажмите для просмотра)`,
+						{
+							type: fileBlob.type,
+							lastModified: Date.now()
+						}
+					);
+
+					files.push(fileObject);
+				}
+			}
+
+			mediaUpload().setFiles(files);
+			mediaChanged = false;
 		}
 	});
 
-	// async function updateAvatarPreview() {
-	// 	if (avatarImageDisplay) URL.revokeObjectURL(avatarImageDisplay);
-	// 	if (avatarFile) avatarImageDisplay = URL.createObjectURL(avatarFile[0]);
-	// }
-
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
-
 		if (!payload || !person) return;
 
+		let successful = true;
+
 		// Uploading avatar
-		if (avatarFile) {
+		if (avatarFile && avatarChanged) {
 			try {
-				payload.avatar = await MediaService.upload(avatarFile);
+				const response = await MediaService.upload(avatarFile);
+				payload.avatar = response;
 			} catch (error) {
 				console.error(error);
+
+				payload.avatar = "";
+				successful = false;
+
+				const errorDescription = error instanceof ApiClientError ? error.describe() : error;
+
+				toaster.error({
+					title: "Ошибка загрузки аватара",
+					description: errorDescription
+				});
 			}
 		}
+
+		// Uploading medias
+
+		let payloadMedia: string[] = [];
+
+		if (mediaFiles && mediaChanged) {
+			for (const mediaFile of mediaFiles) {
+				try {
+					const hash = await MediaService.upload(mediaFile);
+					payloadMedia.push(hash);
+				} catch (error) {
+					console.error(error);
+
+					const errorDescription = error instanceof ApiClientError ? error.describe() : error;
+					successful = false;
+
+					toaster.error({
+						title: "Ошибка загрузки медиа",
+						description: errorDescription
+					});
+				}
+			}
+		}
+
+		payload.media = payloadMedia;
 
 		// Convert birthday to ISO string format
 		payload.birthday = new Date(payload.birthday).toISOString();
 
+		// Sending request
+
+		if (!successful) return;
+
 		try {
 			const new_person = await PersonService.update_person(person.id.id.String, payload);
-			window.location.href = `/persons/${new_person.id.id.String}`;
+
+			goto(resolve(`/persons/${new_person.id.id.String}`));
 		} catch (error) {
-			if (error instanceof ApiClientError) {
-				console.error(`Ошибка: ${error.describe()}`);
-			} else {
-				console.error(`Неизвестная ошибка: ${error}`);
-			}
+			console.error(error);
+
+			const errorDescription = error instanceof ApiClientError ? error.describe() : error;
+
+			toaster.error({
+				title: "Ошибка обновления записи",
+				description: errorDescription
+			});
 		}
 	}
-
-	$effect(() => {
-		console.log(avatarUpload().acceptedFiles);
-	});
 </script>
 
 <!-- Centering Div -->
@@ -233,6 +305,7 @@
 									payload.birthday = e.value.toString();
 								}
 							}}
+							defaultValue={updatedBirthday}
 							locale="ru-RU"
 							startOfWeek={0}
 						>
@@ -534,7 +607,34 @@
 											{#snippet children(mediaUpload)}
 												{#each mediaUpload().acceptedFiles as file (file.name)}
 													<FileUpload.Item {file}>
-														<FileUpload.ItemName>{file.name}</FileUpload.ItemName>
+														<!-- Preview Dialog -->
+														<Dialog>
+															<Dialog.Trigger>
+																<FileUpload.ItemName class="hover:text-primary-400"
+																	>{file.name}</FileUpload.ItemName
+																>
+															</Dialog.Trigger>
+
+															<Portal>
+																<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/50" />
+																<Dialog.Positioner
+																	class="fixed inset-0 z-50 flex items-center justify-center"
+																>
+																	<Dialog.Content
+																		class="w-5xl space-y-2 card bg-surface-100-900 p-4 shadow-xl"
+																	>
+																		<Dialog.CloseTrigger class="group float-right">
+																			<img
+																				src={URL.createObjectURL(file)}
+																				alt=""
+																				class="aspect-video h-auto w-full cursor-pointer rounded-md object-cover"
+																			/>
+																		</Dialog.CloseTrigger>
+																	</Dialog.Content>
+																</Dialog.Positioner>
+															</Portal>
+														</Dialog>
+
 														<FileUpload.ItemSizeText
 															>{(file.size / 1024 / 1024).toFixed(3)} megabytes</FileUpload.ItemSizeText
 														>
@@ -551,7 +651,7 @@
 						<!-- Centering Div -->
 						<div class="flex items-center justify-center">
 							<!-- Submit Button -->
-							<button class="btn preset-filled-primary-500"> Создать </button>
+							<button class="btn preset-filled-primary-500"> Обновить </button>
 						</div>
 					</form>
 				</article>
