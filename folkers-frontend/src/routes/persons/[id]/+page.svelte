@@ -7,13 +7,12 @@
 	import { PersonService } from "$lib/services/person.service";
 	import type { PersonRecord } from "$lib/types/person";
 
-	import { compile } from "mdsvex";
 	import { MediaService } from "$lib/services/media.service";
 
 	import Protected from "$lib/components/protected.svelte";
 	import Maybenot from "$lib/components/maybenot.svelte";
 
-	import { ADMIN_ROLE, EDITOR_ROLE } from "$lib";
+	import { ADMIN_ROLE, EDITOR_ROLE, renderMarkdown } from "$lib";
 	import {
 		Building2,
 		Calendar,
@@ -44,15 +43,11 @@
 	onMount(async () => {
 		person = await PersonService.get_person(personId || "");
 
-		const summaryCode = person.summary
-			.replace(/([^>])\n(?!\n)/g, "$1<br>")
-			.replace(/\n{2,}/g, "</p><p>");
-		const summaryRenderResult = await compile(summaryCode);
-		summaryRendered = summaryRenderResult?.code || person.summary;
+		const summaryCode = person.summary;
+		summaryRendered = await renderMarkdown(summaryCode);
 
-		const pastCode = person.past.replace(/([^>])\n(?!\n)/g, "$1<br>").replace(/\n{2,}/g, "</p><p>");
-		const pastRenderResult = await compile(pastCode);
-		pastRendered = pastRenderResult?.code || person.past;
+		const pastCode = person.past;
+		pastRendered = await renderMarkdown(pastCode);
 
 		if (person.avatar) {
 			try {
@@ -186,8 +181,12 @@
 				<div>
 					<h6 class="h6">Описание:</h6>
 					<Maybenot prop={summaryRendered}>
-						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-						{@html summaryRendered}
+						<div
+							class="prose dark:prose-invert h-[250px] overflow-scroll rounded-lg rounded-tl-[0px] border border-surface-800 p-2 [&_h1]:h1 [&_h2]:h2 [&_h3]:h3 [&_h4]:h4 [&_h5]:h5 [&_h6]:h6 [&>p+p]:mt-5"
+						>
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html summaryRendered}
+						</div>
 					</Maybenot>
 				</div>
 
@@ -195,8 +194,12 @@
 				<div>
 					<h6 class="h6">Прошлое:</h6>
 					<Maybenot prop={pastRendered}>
-						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-						{@html pastRendered}
+						<div
+							class="prose dark:prose-invert h-[250px] overflow-scroll rounded-lg rounded-tl-[0px] border border-surface-800 p-2 [&_h1]:h1 [&_h2]:h2 [&_h3]:h3 [&_h4]:h4 [&_h5]:h5 [&_h6]:h6 [&>p+h1]:mt-5 [&>p+h2]:mt-5 [&>p+h3]:mt-5 [&>p+h4]:mt-5 [&>p+h5]:mt-5 [&>p+h6]:mt-5 [&>p+p]:mt-5"
+						>
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html pastRendered}
+						</div>
 					</Maybenot>
 				</div>
 

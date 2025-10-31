@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ACCEPTABLE_MEDIA_TYPES } from "$lib";
+	import { ACCEPTABLE_MEDIA_TYPES, renderMarkdown } from "$lib";
 	import { ApiClientError } from "$lib/api/error";
 	import type { CreatePersonRecord } from "$lib/types/person";
 
@@ -9,9 +9,6 @@
 	import { DatePicker, Portal } from "@skeletonlabs/skeleton-svelte";
 	import { SegmentedControl } from "@skeletonlabs/skeleton-svelte";
 	import { EyeIcon, PencilIcon } from "@lucide/svelte";
-
-	import { compile } from "mdsvex";
-	import remarkBreaks from "remark-breaks";
 
 	let payload: CreatePersonRecord = $state({
 		name: "",
@@ -35,22 +32,20 @@
 	let summaryMarkdownPreview = $derived.by(async () => {
 		if (!payload) return "";
 
-		const code = payload.summary.replace(/([^>])\n(?!\n)/g, "$1<br>").replace(/\n{2,}/g, "</p><p>");
-		const result = await compile(code);
+		const code = payload.summary;
+		const result = await renderMarkdown(code);
 
-		if (!result) return payload.summary;
-		return result.code;
+		return result;
 	});
 
 	let pastCurrentState: string | null = $state("edit");
 	let pastMarkdownPreview = $derived.by(async () => {
 		if (!payload) return "";
 
-		const code = payload.past.replace(/([^>])\n(?!\n)/g, "$1<br>").replace(/\n{2,}/g, "</p><p>");
-		const result = await compile(code);
+		const code = payload.summary;
+		const result = await renderMarkdown(code);
 
-		if (!result) return payload.past;
-		return result.code;
+		return result;
 	});
 
 	let avatarFile: FileList | null = $state(null);
@@ -348,7 +343,9 @@
 								></textarea>
 							{:else}
 								<!-- Preview -->
-								<div class="h-[250px] rounded-lg rounded-tl-[0px] border border-surface-800 p-2">
+								<div
+									class="prose dark:prose-invert h-[250px] overflow-scroll rounded-lg rounded-tl-[0px] border border-surface-800 p-2 [&_h1]:h1 [&_h2]:h2 [&_h3]:h3 [&_h4]:h4 [&_h5]:h5 [&_h6]:h6 [&>p+h1]:mt-5 [&>p+h2]:mt-5 [&>p+h3]:mt-5 [&>p+h4]:mt-5 [&>p+h5]:mt-5 [&>p+h6]:mt-5 [&>p+p]:mt-5"
+								>
 									{#await summaryMarkdownPreview then previewValue}
 										<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 										{@html previewValue}
@@ -403,7 +400,9 @@
 								></textarea>
 							{:else}
 								<!-- Preview -->
-								<div class="h-[250px] rounded-lg rounded-tl-[0px] border border-surface-800 p-2">
+								<div
+									class="prose dark:prose-invert h-[250px] overflow-scroll rounded-lg rounded-tl-[0px] border border-surface-800 p-2 [&_h1]:h1 [&_h2]:h2 [&_h3]:h3 [&_h4]:h4 [&_h5]:h5 [&_h6]:h6 [&>p+h1]:mt-5 [&>p+h2]:mt-5 [&>p+h3]:mt-5 [&>p+h4]:mt-5 [&>p+h5]:mt-5 [&>p+h6]:mt-5 [&>p+p]:mt-5"
+								>
 									{#await pastMarkdownPreview then previewValue}
 										<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 										{@html previewValue}
