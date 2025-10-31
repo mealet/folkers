@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
 	import { toaster } from "$lib/stores/toaster";
 
 	import { ApiClientError } from "$lib/api/error";
@@ -11,7 +13,7 @@
 	import { SegmentedControl } from "@skeletonlabs/skeleton-svelte";
 	import { FileUpload, useFileUpload } from "@skeletonlabs/skeleton-svelte";
 
-	import { EyeIcon, ImageIcon, PencilIcon } from "@lucide/svelte";
+	import { EyeIcon, ImageIcon, ImagesIcon, PencilIcon } from "@lucide/svelte";
 	import { ACCEPTABLE_MEDIA_TYPES, renderMarkdown } from "$lib";
 
 	const id = $props.id();
@@ -55,40 +57,62 @@
 	});
 
 	let avatarFile: File | null = $state(null);
-	let avatarURL: string = $state("");
+	let avatarPreviewURL: string = $state("");
 
 	const avatarUpload = useFileUpload({
 		id: `${id}-AVATAR`,
+		locale: "ru-RU",
 		accept: ACCEPTABLE_MEDIA_TYPES,
 		maxFiles: 1,
 
-		onFileAccept: (props) => {
-			const selectedFile = props.files?.[0];
-			if (!selectedFile) return;
+		onFileChange: (props) => {
+			const selectedFile = props.acceptedFiles?.[0];
+			if (!selectedFile) {
+				avatarFile = null;
+				return;
+			}
 
 			avatarFile = selectedFile;
 
 			const reader = new FileReader();
 
 			reader.onload = (e) => {
-				avatarURL = e.target?.result as string;
+				avatarPreviewURL = e.target?.result as string;
 			};
 
 			reader.readAsDataURL(selectedFile);
 		}
 	});
 
-	let mediaFiles: FileList | null = $state(null);
-	let mediaURLS: string[] = $state([""]);
+	let mediaFiles: File[] | null = $state(null);
+
+	const mediaUpload = useFileUpload({
+		id: `${id}-MEDIA`,
+		locale: "ru-RU",
+		accept: ACCEPTABLE_MEDIA_TYPES,
+		maxFiles: 20,
+
+		onFileChange: (props) => {
+			mediaFiles = props.acceptedFiles.length > 0 ? props.acceptedFiles : null;
+		}
+	});
 
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
 
+		let successful = true;
+
 		// Uploading avatar
 		if (avatarFile) {
 			try {
-				payload.avatar = await MediaService.upload(avatarFile);
+				const response = await MediaService.upload(avatarFile);
+				payload.avatar = response;
 			} catch (error) {
+				console.error(error);
+
+				payload.avatar = "";
+				successful = false;
+
 				const errorDescription = error instanceof ApiClientError ? error.describe() : error;
 
 				toaster.error({
@@ -97,7 +121,7 @@
 				});
 			}
 		} else {
-			payload.avatar = avatarURL;
+			payload.avatar = "";
 		}
 
 		// Uploading medias
@@ -109,7 +133,10 @@
 					const hash = await MediaService.upload(mediaFile);
 					payloadMedia.push(hash);
 				} catch (error) {
+					console.error(error);
+
 					const errorDescription = error instanceof ApiClientError ? error.describe() : error;
+					successful = false;
 
 					toaster.error({
 						title: "Ошибка загрузки медиа",
@@ -119,20 +146,22 @@
 			}
 		}
 
-		payloadMedia = [...payloadMedia, ...mediaURLS];
-
-		payload.media = payloadMedia.filter((url) => url.trim().length > 0);
+		payload.media = payloadMedia;
 
 		// Convert birthday to ISO string format
 		payload.birthday = new Date(payload.birthday).toISOString();
 
 		// Sending request
 
+		if (!successful) return;
+
 		try {
 			const new_person = await PersonService.create_person(payload);
 
-			window.location.href = `/persons/${new_person.id.id.String}`;
+			goto(resolve(`/persons/${new_person.id.id.String}`));
 		} catch (error) {
+			console.error(error);
+
 			const errorDescription = error instanceof ApiClientError ? error.describe() : error;
 
 			toaster.error({
@@ -450,7 +479,7 @@
 										<FileUpload.HiddenInput />
 									{:else}
 										<img
-											src={avatarURL}
+											src={avatarPreviewURL}
 											alt="Selected Avatar"
 											class="aspect-video h-auto w-full rounded-md object-cover"
 										/>
@@ -460,6 +489,37 @@
 									<FileUpload.Context>
 										{#snippet children(fileUpload)}
 											{#each fileUpload().acceptedFiles as file (file.name)}
+												<FileUpload.Item {file}>
+													<FileUpload.ItemName>{file.name}</FileUpload.ItemName>
+													<FileUpload.ItemSizeText
+														>{(file.size / 1024 / 1024).toFixed(3)} megabytes</FileUpload.ItemSizeText
+													>
+													<FileUpload.ItemDeleteTrigger />
+												</FileUpload.Item>
+											{/each}
+										{/snippet}
+									</FileUpload.Context>
+								</FileUpload.ItemGroup>
+							</FileUpload.Provider>
+						</div>
+					</label>
+
+					<!-- Media Upload -->
+
+					<label class="label">
+						<span class="label-text text-lg">Медиа:</span>
+						<div class="grid w-full gap-4">
+							<FileUpload.Provider value={mediaUpload}>
+								<FileUpload.Dropzone>
+									<ImagesIcon class="size-10" />
+									<span>Выберите или перенесите фото сюда</span>
+									<FileUpload.Trigger>Обзор</FileUpload.Trigger>
+									<FileUpload.HiddenInput />
+								</FileUpload.Dropzone>
+								<FileUpload.ItemGroup>
+									<FileUpload.Context>
+										{#snippet children(mediaUpload)}
+											{#each mediaUpload().acceptedFiles as file (file.name)}
 												<FileUpload.Item {file}>
 													<FileUpload.ItemName>{file.name}</FileUpload.ItemName>
 													<FileUpload.ItemSizeText
@@ -485,165 +545,3 @@
 		</div>
 	</div>
 </div>
-
-<!-- <form on:submit|preventDefault={handleForm} class="block p-5"> -->
-<!-- 	<p class="text-red-500">{errorMessage}</p> -->
-<!---->
-<!-- 	<br /> -->
-<!---->
-<!-- 	<div class="flex gap-3"> -->
-<!-- 		<input -->
-<!-- 			type="text" -->
-<!-- 			placeholder="Фамилия" -->
-<!-- 			bind:value={payload.surname} -->
-<!-- 			required -->
-<!-- 			class="border-1 border-black p-1" -->
-<!-- 		/> -->
-<!-- 		<input -->
-<!-- 			type="text" -->
-<!-- 			placeholder="Имя" -->
-<!-- 			bind:value={payload.name} -->
-<!-- 			required -->
-<!-- 			class="border-1 border-black p-1" -->
-<!-- 		/> -->
-<!-- 		<input -->
-<!-- 			type="text" -->
-<!-- 			placeholder="Отчество" -->
-<!-- 			bind:value={payload.patronymic} -->
-<!-- 			required -->
-<!-- 			class="border-1 border-black p-1" -->
-<!-- 		/> -->
-<!-- 	</div> -->
-<!---->
-<!-- 	<br /> -->
-<!---->
-<!-- 	<div class=""> -->
-<!-- 		<p>Дата рождения:</p> -->
-<!-- 		<input -->
-<!-- 			type="date" -->
-<!-- 			placeholder="Дата рождения" -->
-<!-- 			bind:value={payload.birthday} -->
-<!-- 			required -->
-<!-- 			class="border-1 border-black p-1" -->
-<!-- 		/> -->
-<!---->
-<!-- 		<br /> -->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<p>Город проживания</p> -->
-<!-- 		<input -->
-<!-- 			type="text" -->
-<!-- 			placeholder="Москва" -->
-<!-- 			bind:value={payload.city} -->
-<!-- 			class="border-1 border-black p-1" -->
-<!-- 		/> -->
-<!---->
-<!-- 		<br /> -->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<p>Предполагаемый адресс проживания:</p> -->
-<!-- 		<input -->
-<!-- 			type="text" -->
-<!-- 			placeholder="ул. Пушкина, дом 1" -->
-<!-- 			bind:value={payload.intented_address} -->
-<!-- 			class="border-1 border-black p-1" -->
-<!-- 		/> -->
-<!---->
-<!-- 		<br /> -->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<div class="flex gap-3"> -->
-<!-- 			<div> -->
-<!-- 				<p>Хорошие черты:</p> -->
-<!-- 				<input -->
-<!-- 					type="text" -->
-<!-- 					placeholder="Умный, красивый и тд." -->
-<!-- 					bind:value={payload.traits_good} -->
-<!-- 					class="border-1 border-black p-1" -->
-<!-- 				/> -->
-<!-- 			</div> -->
-<!---->
-<!-- 			<div> -->
-<!-- 				<p>Плохие черты:</p> -->
-<!-- 				<input -->
-<!-- 					type="text" -->
-<!-- 					placeholder="Тупой, уродливый и тд." -->
-<!-- 					bind:value={payload.traits_bad} -->
-<!-- 					class="border-1 border-black p-1" -->
-<!-- 				/> -->
-<!-- 			</div> -->
-<!-- 		</div> -->
-<!---->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<div> -->
-<!-- 			<p>Описание:</p> -->
-<!-- 			<textarea class="border-1 border-black p-1" bind:value={payload.summary}></textarea> -->
-<!-- 		</div> -->
-<!---->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<div> -->
-<!-- 			<p>Прошлое:</p> -->
-<!-- 			<textarea class="border-1 border-black p-1" bind:value={payload.past}></textarea> -->
-<!-- 		</div> -->
-<!---->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<p>Аватар:</p> -->
-<!-- 		<div class="flex gap-3"> -->
-<!-- 			<div> -->
-<!-- 				<input -->
-<!-- 					type="file" -->
-<!-- 					class="border-1 border-black p-1" -->
-<!-- 					bind:files={avatarFile} -->
-<!-- 					accept={ACCEPTABLE_MEDIA_TYPES} -->
-<!-- 				/> -->
-<!-- 			</div> -->
-<!---->
-<!-- 			<div> -->
-<!-- 				<input -->
-<!-- 					type="url" -->
-<!-- 					placeholder="Ссылка на изображение" -->
-<!-- 					class="border-1 border-black p-1" -->
-<!-- 					disabled={avatarFile !== null} -->
-<!-- 					bind:value={avatarURL} -->
-<!-- 				/> -->
-<!-- 			</div> -->
-<!-- 		</div> -->
-<!---->
-<!-- 		<br /> -->
-<!---->
-<!-- 		<p>Медиа:</p> -->
-<!-- 		<div> -->
-<!-- 			<input -->
-<!-- 				type="file" -->
-<!-- 				class="border-1 border-black p-1" -->
-<!-- 				bind:files={mediaFiles} -->
-<!-- 				accept={ACCEPTABLE_MEDIA_TYPES} -->
-<!-- 				multiple -->
-<!-- 			/> -->
-<!---->
-<!-- 			<br /> -->
-<!---->
-<!-- 			{#each mediaURLS as content, i (i)} -->
-<!-- 				<br /> -->
-<!-- 				<input -->
-<!-- 					type="url" -->
-<!-- 					placeholder="Введите URL..." -->
-<!-- 					bind:value={mediaURLS[i]} -->
-<!-- 					on:input={(event) => handleMediaInput(i, event)} -->
-<!-- 					class="border-1 border-black p-1" -->
-<!-- 				/> -->
-<!-- 				<p class="hidden">{content}</p> -->
-<!-- 				<br /> -->
-<!-- 			{/each} -->
-<!-- 		</div> -->
-<!-- 	</div> -->
-<!---->
-<!-- 	<br /> -->
-<!---->
-<!-- 	<div> -->
-<!-- 		<button type="submit" class="border-1 border-black p-1">Создать</button> -->
-<!-- 	</div> -->
-<!-- </form> -->
