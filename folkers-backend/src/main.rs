@@ -156,7 +156,7 @@
 //! >
 //! > **Returns:** [UserRecord](database::user::UserRecord)
 
-use axum::{Router, http::Method, routing};
+use axum::{extract::DefaultBodyLimit, http::Method, routing, Router};
 use std::sync::LazyLock;
 use tower_http::cors::{self, CorsLayer};
 
@@ -260,6 +260,7 @@ async fn main() -> anyhow::Result<()> {
 
     let editors_routers = Router::new()
         .route("/upload", routing::post(routers::upload_handler))
+        .layer(DefaultBodyLimit::disable())
         .route(
             "/persons/create",
             routing::post(routers::persons_create_handler),

@@ -19,7 +19,7 @@ static UPLOADS_DIR: LazyLock<String> = LazyLock::new(|| {
         String::from("./uploads")
     }
 });
-const MAX_FILE_SIZE: usize = 20 * 1024 * 1024; // 20 MB
+pub const MAX_FILE_SIZE: usize = 50 * 1024 * 1024; // 50 MB
 
 pub async fn init_uploads() -> Result<(), std::io::Error> {
     tokio::fs::create_dir_all(UPLOADS_DIR.to_owned()).await
