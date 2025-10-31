@@ -14,6 +14,17 @@ export class MediaService {
 		return url;
 	}
 
+	static async get_blob(url: string): Promise<Blob | null> {
+		if (url.startsWith(SERVER_MEDIA_PREFIX)) {
+			const rawHash: string = url.slice(SERVER_MEDIA_PREFIX.length);
+			const mediaResponse = await api.fetch(`/media/${rawHash}`);
+			const blob = await mediaResponse.blob();
+
+			return blob;
+		}
+		return null;
+	}
+
 	static async upload(file: File): Promise<string> {
 		const hash = await api.upload(file);
 		return `@/${hash.trim()}`;
