@@ -42,7 +42,7 @@
 
 		<!-- Form Card -->
 		<div
-			class="block w-lg divide-y divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl"
+			class="block divide-y divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl sm:w-lg"
 		>
 			<article>
 				<form class="space-y-4 p-4" onsubmit={handleSubmit}>

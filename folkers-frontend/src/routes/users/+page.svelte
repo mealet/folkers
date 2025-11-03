@@ -58,9 +58,9 @@
 </script>
 
 <!-- Centering Div -->
-<div class="flex items-center justify-center p-4">
+<div class="flex w-screen items-center justify-center p-4">
 	<!-- Content Div -->
-	<div class="w-2xl space-y-4">
+	<div class="w-2xl space-y-4 max-md:w-xl">
 		<div>
 			<p class="text-xl font-bold">Список пользователей:</p>
 			<p class="text-lg">Всего: {users.length}</p>
@@ -90,7 +90,7 @@
 		<!-- Card -->
 		{#if users.length > 0}
 			<div
-				class="block w-2xl divide-y divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl"
+				class="block divide-y divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl md:w-2xl"
 			>
 				<article class="space-y-3 p-3">
 					<!-- Users Table -->

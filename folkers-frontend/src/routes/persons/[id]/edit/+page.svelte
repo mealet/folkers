@@ -251,7 +251,7 @@
 
 			<!-- Form Card -->
 			<div
-				class="block w-2xl divide-y divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl"
+				class="block divide-y divide-surface-200-800 overflow-hidden card border-[1px] border-surface-200-800 preset-filled-surface-100-900 shadow-xl max-sm:max-w-lg sm:w-xl md:w-2xl"
 			>
 				<article>
 					<form class="space-y-5 p-4" onsubmit={handleSubmit}>
@@ -259,7 +259,7 @@
 						<label class="label">
 							<span class="label-text">ФИО:</span>
 
-							<div class="flex gap-3">
+							<div class="gap-3 max-md:space-y-2 md:flex">
 								<input
 									class="input"
 									type="text"
@@ -419,7 +419,7 @@
 						<label class="label">
 							<span class="label-text">Черты:</span>
 
-							<div class="flex gap-3">
+							<div class="gap-3 max-md:space-y-2 md:flex">
 								<!-- Good Traits -->
 								<input
 									class="input preset-outlined-success-500"
