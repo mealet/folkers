@@ -2,7 +2,8 @@ import { mdsvex } from "mdsvex";
 import remarkBreaks from "remark-breaks";
 import rehypeExternalLinks from "rehype-external-links";
 
-import adapter from "@sveltejs/adapter-auto";
+// import adapter from "@sveltejs/adapter-auto";
+import adapter from "svelte-adapter-bun";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */

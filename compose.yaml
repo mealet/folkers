@@ -1,28 +1,22 @@
 name: folkers
 
 services:
-  frontend:
-    build:
-      context: folkers-frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=http://backend:3000
-
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    user: "root"
+    command: start --username ${FOLKERS_DB_USERNAME:-root} --password ${FOLKERS_DB_PASSWORD:-root} rocksdb:/data/folkers.db
     ports:
-      - 4173:4173
-    environment:
-      - NODE_ENV=production
+      - 8000:8000
     restart: unless-stopped
-
-    depends_on:
-      - backend
+    volumes:
+      - surrealdb_data:/data
 
   backend:
     build:
       context: folkers-backend
       dockerfile: Dockerfile
     ports:
-      - 3000:3000
+      - 3001:3001
     environment:
       - RUST_LOG=debug
       - FOLKERS_JWT_SECRET=${FOLKERS_JWT_SECRET:-default_jwt_secret}
@@ -41,6 +35,20 @@ services:
       - surrealdb
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: folkers-frontend
+      dockerfile: Dockerfile
+
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
   nginx:
     image: nginx:alpine
     ports:
@@ -51,16 +59,6 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     restart: unless-stopped
-
-  surrealdb:
-    image: surrealdb/surrealdb:latest
-    user: "root"
-    command: start --username ${FOLKERS_DB_USERNAME:-root} --password ${FOLKERS_DB_PASSWORD:-root} rocksdb:/data/folkers.db
-    ports:
-      - 8000:8000
-    restart: unless-stopped
-    volumes:
-      - surrealdb_data:/data
 
 volumes:
   uploads_volume:

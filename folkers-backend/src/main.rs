@@ -166,7 +166,7 @@ mod middleware;
 mod routers;
 mod uploads;
 
-const ENDPOINT: &str = "0.0.0.0:3000";
+const ENDPOINT: &str = "0.0.0.0:3001";
 
 pub static DATABASE: LazyLock<database::DatabaseClient> =
     LazyLock::new(database::DatabaseClient::init);
