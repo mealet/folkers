@@ -8,7 +8,7 @@ Required environment variables list:
 ```env
 FOLKERS_JWT_SECRET=secret string for jwt tokens
 FOLKERS_BASE64_SALT=base64 encoded salt for hash
-FOLKERS_UPLOAD_DIR=path to directory with uploaded media
+FOLKERS_UPLOADS_DIR=path to directory with uploaded media
 
 FOLKERS_DB_USERNAME=database username
 FOLKERS_DB_PASSWORD=database password
