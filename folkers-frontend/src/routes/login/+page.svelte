@@ -50,10 +50,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Войти - Folkers</title>
-</svelte:head>
-
 <!-- Centering Div -->
 <div class="flex min-h-screen items-center justify-center">
 	<!-- Skeleton UI Card -->

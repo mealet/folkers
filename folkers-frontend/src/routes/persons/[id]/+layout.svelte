@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Войти - Folkers</title>
+	<title>Folkers</title>
 </svelte:head>
 
 <slot />
