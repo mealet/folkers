@@ -1,7 +1,10 @@
 # Folkers
-English | [Русский](README.ru-RU.md)
 
-Folkers - a private web app for easy people information management. <br/>
+<img width="1920" height="1080" alt="850_1x_shots_so" src="https://github.com/user-attachments/assets/8570a0b4-972f-4492-b401-801c697a6736" />
+
+<sub>English | [Русский](README.ru-RU.md)<sub/>
+
+**Folkers** - a private web app for easy people information management. <br/>
 It provides fast and intuitive backend API, beautiful UI and safe access.
 
 Core interaction is based on 3 main roles: _watcher_, _editor_, _admin_. Each one have it's own permissions and specifications:
