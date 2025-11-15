@@ -1,4 +1,6 @@
 # Folkers
+English | [Русский](README.ru-RU.md)
+
 Folkers - a private web app for easy people information management. <br/>
 It provides fast and intuitive backend API, beautiful UI and safe access.
 
