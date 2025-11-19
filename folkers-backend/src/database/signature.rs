@@ -1,0 +1,11 @@
+use surrealdb::sql::Thing;
+use serde::{Deserialize, Serialize};
+
+/// Database record with signature content
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecordSignatureRecord {
+    pub id: Option<Thing>,
+    pub record_id: String,
+    pub base64: String,
+    pub pubkey: String
+}

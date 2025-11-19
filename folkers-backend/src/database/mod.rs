@@ -6,11 +6,15 @@ use surrealdb::{
     opt::auth::Root,
 };
 
+use crate::{database::signature::RecordSignatureRecord, signatures::RecordSignature};
+
+pub mod signature;
 pub mod person;
 pub mod user;
 
 const USER: &str = "user";
 const PERSON: &str = "person";
+const SIGNATURES: &str = "signatures";
 
 /// Database interaction client.
 /// You can adapt it and use with axum's `with_state`, but I'd recommend to make
@@ -83,6 +87,17 @@ DEFINE FIELD IF NOT EXISTS media ON TABLE {PERSON} TYPE array<string>;
 DEFINE FIELD IF NOT EXISTS author ON TABLE {PERSON} TYPE string;
 
 DEFINE INDEX IF NOT EXISTS unique_person ON TABLE {PERSON} COLUMNS surname, name, patronymic UNIQUE;
+
+-- Person Records Signatures Table
+
+DEFINE TABLE IF NOT EXISTS {SIGNATURES} SCHEMAFULL
+    PERMISSIONS FOR
+        CREATE, SELECT WHERE $auth
+        FOR UPDATE, DELETE WHERE created_by = $auth;
+
+DEFINE FIELD record_id ON TABLE {SIGNATURES} TYPE string;
+DEFINE FIELD base64 ON TABLE {SIGNATURES} TYPE string;
+DEFINE FIELD pubkey ON TABLE {SIGNATURES} TYPE string;
 
 -- Functions
 
@@ -297,5 +312,29 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
     /// Get Persons Records list
     pub async fn list_persons(&self) -> Result<Vec<person::PersonRecord>, surrealdb::Error> {
         self.connection.select(PERSON).await
+    }
+
+    // INFO: Signatures Section
+
+    pub async fn add_signature(&self, signature: RecordSignature) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
+        self.connection
+            .create(SIGNATURES)
+            .content(RecordSignatureRecord {
+                id: None,
+                record_id: signature.record_id,
+                base64: signature.base64,
+                pubkey: signature.pubkey
+            })
+            .await
+    }
+
+    pub async fn get_signature(&self, record_id: String) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
+        let mut query = self.connection
+            .query(format!("SELECT * FROM {SIGNATURES} WHERE record_id = $record_id"))
+            .bind(("record_id", record_id))
+            .await?;
+
+        let result: Option<RecordSignatureRecord> = query.take(0usize)?;
+        Ok(result)
     }
 }
