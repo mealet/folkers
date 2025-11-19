@@ -15,3 +15,8 @@ pub struct RecordSignatureRecord {
 pub struct SignRecordPayload {
     pub private_key: String
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyRecordPayload {
+    pub public_key: String
+}

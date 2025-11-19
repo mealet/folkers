@@ -305,6 +305,10 @@ async fn main() -> anyhow::Result<()> {
             "/persons/{id}/sign",
             routing::post(routers::persons_id_sign_handler),
         )
+        .route(
+            "/persons/{id}/verify",
+            routing::get(routers::persons_id_verify_handler),
+        )
         .route_layer(axum::middleware::from_fn_with_state(
             app_state.clone(),
             middleware::auth_middleware,
