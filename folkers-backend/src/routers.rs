@@ -570,7 +570,8 @@ pub async fn signature_keygen_handler(
         return Err(StatusCode::FORBIDDEN);
     }
 
-    // TODO: Add writing public key to author profile in DB
+    // TODO: Add writing public key to author profile in DB.
+    // TODO: Add keygen block on if key already exists.
 
     return Ok(signatures::generate_signing_keypair().0)
 }
