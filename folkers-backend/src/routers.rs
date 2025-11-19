@@ -5,7 +5,7 @@ use axum::{
     response::{Html, IntoResponse},
 };
 
-use super::{DATABASE, auth, database, middleware, uploads};
+use super::{DATABASE, auth, database, middleware, uploads, signatures};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -559,5 +559,60 @@ pub async fn users_username_patch_handler(
             Ok(Json(record))
         }
         None => Err(StatusCode::NOT_FOUND),
+    }
+}
+
+/// POST `/signature-keygen`
+pub async fn signature_keygen_handler(
+    auth_user: middleware::AuthUser,
+) -> Result<String, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    // TODO: Add writing public key to author profile in DB
+
+    return Ok(signatures::generate_signing_keypair().0)
+}
+
+/// POST `/persons/{id}/sign`
+pub async fn persons_id_sign_handler(
+    auth_user: middleware::AuthUser,
+    Path(id): Path<String>,
+    payload: Json<database::signature::SignRecordPayload>,
+) -> Result<Json<database::signature::RecordSignatureRecord>, StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    // verifying that record isn't unsigned yet
+    
+    let existing_signature = DATABASE.get_signature(&id).await;
+
+    if let Ok(existing_signature) = existing_signature {
+        if existing_signature.is_some() {
+            return Err(StatusCode::CONFLICT);
+        }
+    }
+
+    // now signing this record
+    
+    let record = DATABASE.get_person(&id).await;
+
+    match record {
+        Some(record) => {
+            let signature = signatures::sign_record(record, payload.private_key.clone()).or_else(|err| {
+                log::error!("`{} ({})` [POST /persons/{{id}}] got signature error: {}", auth_user.username, auth_user.id, err);
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
+            })?;
+
+            let db_result = DATABASE.add_signature(signature, &auth_user.username).await.or_else(|err| {
+                log::error!("`{} ({})` [POST /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
+                Err(StatusCode::INTERNAL_SERVER_ERROR)               
+            })?.unwrap();
+
+            Ok(Json(db_result))
+        },
+        None => Err(StatusCode::NOT_FOUND)
     }
 }

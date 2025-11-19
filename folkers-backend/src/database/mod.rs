@@ -98,6 +98,7 @@ DEFINE TABLE IF NOT EXISTS {SIGNATURES} SCHEMAFULL
 DEFINE FIELD record_id ON TABLE {SIGNATURES} TYPE string;
 DEFINE FIELD base64 ON TABLE {SIGNATURES} TYPE string;
 DEFINE FIELD pubkey ON TABLE {SIGNATURES} TYPE string;
+DEFINE FIELD signed_by ON TABLE {SIGNATURES} TYPE string;
 
 -- Functions
 
@@ -316,22 +317,23 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
 
     // INFO: Signatures Section
 
-    pub async fn add_signature(&self, signature: RecordSignature) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
+    pub async fn add_signature(&self, signature: RecordSignature, signed_by: impl AsRef<str>) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
         self.connection
             .create(SIGNATURES)
             .content(RecordSignatureRecord {
                 id: None,
                 record_id: signature.record_id,
                 base64: signature.base64,
-                pubkey: signature.pubkey
+                pubkey: signature.pubkey,
+                signed_by: signed_by.as_ref().to_owned()
             })
             .await
     }
 
-    pub async fn get_signature(&self, record_id: String) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
+    pub async fn get_signature(&self, record_id: impl AsRef<str>) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
         let mut query = self.connection
             .query(format!("SELECT * FROM {SIGNATURES} WHERE record_id = $record_id"))
-            .bind(("record_id", record_id))
+            .bind(("record_id", record_id.as_ref().to_string()))
             .await?;
 
         let result: Option<RecordSignatureRecord> = query.take(0usize)?;

@@ -297,6 +297,14 @@ async fn main() -> anyhow::Result<()> {
             "/users/{username}",
             routing::patch(routers::users_username_patch_handler),
         )
+        .route(
+            "/signature-keygen",
+            routing::post(routers::signature_keygen_handler),
+        )
+        .route(
+            "/persons/{id}/sign",
+            routing::post(routers::persons_id_sign_handler),
+        )
         .route_layer(axum::middleware::from_fn_with_state(
             app_state.clone(),
             middleware::auth_middleware,

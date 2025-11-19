@@ -7,5 +7,11 @@ pub struct RecordSignatureRecord {
     pub id: Option<Thing>,
     pub record_id: String,
     pub base64: String,
-    pub pubkey: String
+    pub pubkey: String,
+    pub signed_by: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignRecordPayload {
+    pub private_key: String
 }
