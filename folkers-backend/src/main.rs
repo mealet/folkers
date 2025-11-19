@@ -162,6 +162,7 @@ use tower_http::cors::{self, CorsLayer};
 
 mod auth;
 mod database;
+mod signatures;
 mod middleware;
 mod routers;
 mod uploads;
