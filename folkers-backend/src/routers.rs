@@ -565,7 +565,7 @@ pub async fn users_username_patch_handler(
 /// POST `/signature-keygen`
 pub async fn signature_keygen_handler(
     auth_user: middleware::AuthUser,
-) -> Result<String, StatusCode> {
+) -> Result<Json<String>, StatusCode> {
     if auth_user.role < auth::user::UserRole::Admin {
         return Err(StatusCode::FORBIDDEN);
     }
@@ -584,7 +584,7 @@ pub async fn signature_keygen_handler(
                 Err(StatusCode::INTERNAL_SERVER_ERROR)
             })?;
 
-            return Ok(private_key);
+            return Ok(Json(private_key));
         },
         None => Err(StatusCode::NOT_FOUND)
     }
