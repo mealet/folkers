@@ -411,7 +411,7 @@ pub async fn users_username_handler(
     auth_user: middleware::AuthUser,
     Path(username): Path<String>,
 ) -> Result<Json<database::user::UserRecord>, StatusCode> {
-    if auth_user.role < auth::user::UserRole::Admin {
+    if auth_user.role < auth::user::UserRole::Admin && auth_user.username != username {
         return Err(StatusCode::FORBIDDEN);
     }
 
