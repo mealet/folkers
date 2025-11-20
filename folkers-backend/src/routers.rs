@@ -570,10 +570,51 @@ pub async fn signature_keygen_handler(
         return Err(StatusCode::FORBIDDEN);
     }
 
-    // TODO: Add writing public key to author profile in DB.
-    // TODO: Add keygen block on if key already exists.
+    let user = DATABASE.get_user(&auth_user.id).await;
 
-    return Ok(signatures::generate_signing_keypair().0)
+    match user {
+        Some(user) => {
+            if user.public_key.is_some() {
+                return Err(StatusCode::CONFLICT);
+            }
+
+            let (private_key, public_key) = signatures::generate_signing_keypair();
+            let _ = DATABASE.update_user_pubkey(&auth_user.id, Some(public_key)).await.or_else(|err| {
+                log::error!("`{} ({})` [POST /signature-keygen] got database error: {}", auth_user.username, auth_user.id, err);
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
+            })?;
+
+            return Ok(private_key);
+        },
+        None => Err(StatusCode::NOT_FOUND)
+    }
+}
+
+/// DELETE `/signature-reset`
+pub async fn signature_reset_handler(
+    auth_user: middleware::AuthUser,
+) -> Result<(), StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    let user = DATABASE.get_user(&auth_user.id).await;
+
+    match user {
+        Some(user) => {
+            if user.public_key.is_none() {
+                return Err(StatusCode::NO_CONTENT);
+            }
+
+            let _ = DATABASE.update_user_pubkey(&auth_user.id, None).await.or_else(|err| {
+                log::error!("`{} ({})` [POST /signature-keygen] got database error: {}", auth_user.username, auth_user.id, err);
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
+            })?;
+
+            return Ok(());
+        },
+        None => Err(StatusCode::NOT_FOUND)
+    }
 }
 
 /// POST `/persons/{id}/sign`

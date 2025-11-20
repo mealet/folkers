@@ -9,6 +9,7 @@ pub struct UserRecord {
     pub role: String,
     pub created_by: String,
     pub creation_datetime: Datetime,
+    pub public_key: Option<String>
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

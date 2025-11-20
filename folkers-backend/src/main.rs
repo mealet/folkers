@@ -330,6 +330,10 @@ async fn main() -> anyhow::Result<()> {
             routing::post(routers::signature_keygen_handler),
         )
         .route(
+            "/signature-reset",
+            routing::delete(routers::signature_reset_handler),
+        )
+        .route(
             "/persons/{id}/sign",
             routing::post(routers::persons_id_sign_handler),
         )

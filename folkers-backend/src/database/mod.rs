@@ -5,6 +5,7 @@ use surrealdb::{
     engine::remote::ws::{Client, Ws},
     opt::auth::Root,
 };
+use serde_json::json;
 
 use crate::{database::signature::RecordSignatureRecord, signatures::RecordSignature};
 
@@ -58,6 +59,7 @@ DEFINE FIELD IF NOT EXISTS password ON TABLE {USER} TYPE string;
 DEFINE FIELD IF NOT EXISTS role ON TABLE {USER} TYPE string;
 DEFINE FIELD IF NOT EXISTS created_by ON TABLE {USER} TYPE string;
 DEFINE FIELD IF NOT EXISTS creation_datetime ON TABLE {USER} TYPE datetime;
+DEFINE FIELD IF NOT EXISTS public_key ON TABLE {USER} TYPE option<string>;
 
 DEFINE INDEX IF NOT EXISTS unique_name ON TABLE {USER} COLUMNS username UNIQUE;
 
@@ -95,10 +97,10 @@ DEFINE TABLE IF NOT EXISTS {SIGNATURES} SCHEMAFULL
         CREATE, SELECT WHERE $auth
         FOR UPDATE, DELETE WHERE created_by = $auth;
 
-DEFINE FIELD record_id ON TABLE {SIGNATURES} TYPE string;
-DEFINE FIELD base64 ON TABLE {SIGNATURES} TYPE string;
-DEFINE FIELD pubkey ON TABLE {SIGNATURES} TYPE string;
-DEFINE FIELD signed_by ON TABLE {SIGNATURES} TYPE string;
+DEFINE FIELD IF NOT EXISTS record_id ON TABLE {SIGNATURES} TYPE string;
+DEFINE FIELD IF NOT EXISTS base64 ON TABLE {SIGNATURES} TYPE string;
+DEFINE FIELD IF NOT EXISTS pubkey ON TABLE {SIGNATURES} TYPE string;
+DEFINE FIELD IF NOT EXISTS signed_by ON TABLE {SIGNATURES} TYPE string;
 
 -- Functions
 
@@ -174,6 +176,7 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
                 role: user.role,
                 created_by: user.created_by,
                 creation_datetime: surrealdb::Datetime::from(chrono::Utc::now()),
+                public_key: None
             })
             .await
     }
@@ -211,6 +214,17 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
             .update((USER, id.as_ref()))
             .merge(user)
             // .content(user)
+            .await
+    }
+
+    pub async fn update_user_pubkey(
+        &self,
+        id: impl AsRef<str>,
+        public_key: Option<String>
+    ) -> Result<Option<user::UserRecord>, surrealdb::Error> {
+        self.connection
+            .update((USER, id.as_ref()))
+            .merge(json!({ "public_key": public_key }))
             .await
     }
 
