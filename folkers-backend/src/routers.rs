@@ -664,7 +664,6 @@ pub async fn persons_id_sign_handler(
 pub async fn persons_id_verify_handler(
     auth_user: middleware::AuthUser,
     Path(id): Path<String>,
-    payload: Json<database::signature::VerifyRecordPayload>,
 ) -> Result<Json<bool>, StatusCode> {
     if auth_user.role < auth::user::UserRole::Admin {
         return Err(StatusCode::FORBIDDEN);
@@ -676,19 +675,30 @@ pub async fn persons_id_verify_handler(
         Some(record) => {
             let signature_record = DATABASE.get_signature(&id).await.or_else(|err| {
                 log::error!("`{} ({})` [POST /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
-                Err(StatusCode::INTERNAL_SERVER_ERROR)               
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
             })?;
 
             if let Some(signature) = signature_record {
-                let verification = signatures::verify_record(record, signatures::RecordSignature {
-                    record_id: signature.record_id,
-                    base64: signature.base64,
-                    pubkey: payload.public_key.clone()
-                }).or_else(|_| {
-                    return Ok::<bool, StatusCode>(false)
+                let author_record = DATABASE.get_user_by_username(signature.signed_by).await.or_else(|err| {
+                    log::error!("`{} ({})` [POST /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
+                    Err(StatusCode::INTERNAL_SERVER_ERROR)
                 })?;
 
-                return Ok(Json(verification));
+                if let Some(author) = author_record {
+                    if author.public_key.is_none() {
+                        return Ok(Json(false));
+                    }
+
+                    let verification = signatures::verify_record(record, signatures::RecordSignature {
+                        record_id: signature.record_id,
+                        base64: signature.base64,
+                        pubkey: author.public_key.unwrap()
+                    }).or_else(|_| {
+                        return Ok::<bool, StatusCode>(false)
+                    })?;
+
+                    return Ok(Json(verification));
+                }
             }
 
             return Err(StatusCode::NOT_FOUND);
