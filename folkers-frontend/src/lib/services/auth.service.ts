@@ -18,4 +18,18 @@ export class AuthService {
 
 		throw new Error("Error loading logged user data");
 	}
+
+	static async signatureKeygen(): Promise<string> {
+		return (
+			await api.fetch("/signature-keygen", {
+				method: "POST"
+			})
+		).json();
+	}
+
+	static async signatureReset(): Promise<void> {
+		await api.fetch("/signature-reset", {
+			method: "DELETE"
+		});
+	}
 }

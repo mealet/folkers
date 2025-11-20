@@ -7,6 +7,7 @@ export interface User {
 	role: string;
 	created_by: string;
 	creation_datetime: Date;
+	public_key: string | null;
 }
 
 export interface LoginCredentials {

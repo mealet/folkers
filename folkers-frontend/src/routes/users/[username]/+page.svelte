@@ -12,16 +12,29 @@
 	import {
 		CalendarIcon,
 		CircleX,
+		KeyIcon,
 		PenIcon,
 		ScanFaceIcon,
 		ShieldQuestionMarkIcon,
 		TrashIcon,
-		UserPenIcon
+		UserPenIcon,
+		CopyIcon,
+		CheckIcon
 	} from "@lucide/svelte";
-	import { selectableRoles } from "$lib";
+	import { ADMIN_ROLE, selectableRoles } from "$lib";
+	import { AuthService } from "$lib/services/auth.service";
 
 	const userId = page.params.username;
 	let user = $state<User | null>(null);
+
+	let generatedKey = $state<string | null>(null);
+	let copied = $state<boolean>(false);
+
+	$effect(() => {
+		if (copied) {
+			setInterval(() => (copied = false), 1000);
+		}
+	});
 
 	const allowedToEdit = $derived(
 		user &&
@@ -55,6 +68,57 @@
 
 						await UserService.delete_user(user.username);
 						window.location.href = "/users";
+					}
+				}
+			});
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error.describe()
+				});
+			} else {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error
+				});
+			}
+		}
+	}
+
+	async function generateSignKeypair(event: Event) {
+		event.preventDefault();
+
+		try {
+			generatedKey = await AuthService.signatureKeygen();
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error.describe()
+				});
+			} else {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error
+				});
+			}
+		}
+	}
+
+	async function resetSignKeypair(event: Event) {
+		event.preventDefault();
+
+		try {
+			toaster.error({
+				title: "Вы уверены?",
+				description: "Это сделает ранее сделанные подписи недействительными",
+				duration: 8000,
+				action: {
+					label: "Удалить",
+					onClick: async () => {
+						await AuthService.signatureReset();
+						location.reload();
 					}
 				}
 			});
@@ -116,6 +180,14 @@
 					<p>{roleLabel || user.role}</p>
 				</div>
 
+				<!-- Public Key (if exists) -->
+				{#if user.public_key}
+					<div class="flex items-center space-x-2 text-surface-200">
+						<KeyIcon size={17} />
+						<p>{user.public_key}</p>
+					</div>
+				{/if}
+
 				<!-- Author -->
 				<div class="flex items-center space-x-2 text-surface-200">
 					<UserPenIcon size={17} />
@@ -128,6 +200,62 @@
 						class="font-mono hover:text-primary-400">{user.created_by}</button
 					>
 				</div>
+
+				<!-- Keygen Section -->
+				{#if user.role === ADMIN_ROLE}
+					<hr class="hr" />
+
+					<div class="space-y-3">
+						<h4 class="h4">Генерация защищенных ключей для подписи</h4>
+						<p>
+							Защищенные ключи требуются для подписи записей из базы данных со стороны
+							администратора. Такая подпись будет означать что приведённой информации можно
+							доверять.
+							<br />
+							При нажатии на кнопку "Сгенерировать" будет создана пара ключей: публичный и приватный.
+							Публичный будет автоматически добавлен вам в профиль и будет виден всем, а приватный вы
+							должны сохранить себе для будущего использования.
+							<br />
+							<br />
+
+							<b>⚠️ ВАЖНО:</b> Ни в коем случае не делитесь приватным ключём подписи! Если это случилось
+							- срочно нажимайте "Удалить" на данной странице.
+						</p>
+
+						{#if generatedKey}
+							<div class="flex items-center space-x-2 text-surface-200">
+								<p>
+									<b>Ваш секретный ключ:</b> <span>{generatedKey}</span>
+								</p>
+								<button
+									class="m-0 pt-1"
+									onclick={() => {
+										navigator.clipboard.writeText(generatedKey || "");
+										copied = true;
+									}}
+								>
+									{#if !copied}
+										<CopyIcon size={14} />
+									{:else}
+										<CheckIcon size={14} />
+									{/if}
+								</button>
+							</div>
+						{/if}
+
+						{#if !user.public_key}
+							<button
+								class="btn preset-filled-surface-500"
+								onclick={generateSignKeypair}
+								disabled={generatedKey !== null}>Сгенерировать ключи для подписи</button
+							>
+						{:else}
+							<button class="btn preset-filled-error-500" onclick={resetSignKeypair}
+								>Удалить ключи для подписи</button
+							>
+						{/if}
+					</div>
+				{/if}
 			</article>
 		</div>
 	{:else}
@@ -137,32 +265,3 @@
 		</span>
 	{/if}
 </div>
-
-<!-- {#if user} -->
-<!-- 	<div class="p-2"> -->
-<!-- 		<h1 class="text-xl">{user.username}</h1> -->
-<!-- 		<p>Идентификатор: {user.id.id.String}</p> -->
-<!-- 		<p>Роль: <span class="underline">{user.role}</span></p> -->
-<!-- 		<p> -->
-<!-- 			Создан администратором: -->
-<!-- 			<button class="cursor-pointer text-blue-600" onclick={gotoCreator}> -->
-<!-- 				{user.created_by} -->
-<!-- 			</button> -->
-<!-- 		</p> -->
-<!-- 		<p>Дата создания: {user.creation_datetime ? formatDate(user.creation_datetime) : "-"}</p> -->
-<!---->
-<!-- 		{#if allowedToEdit} -->
-<!-- 			<br /> -->
-<!---->
-<!-- 			<a href={resolve(`/users/${userId}/edit`)} -->
-<!-- 				><button class="cursor-pointer border-1 border-black p-1">Редактировать</button></a -->
-<!-- 			> -->
-<!-- 			<button -->
-<!-- 				class="cursor-pointer border-1 border-black bg-red-500 p-1 text-white" -->
-<!-- 				onclick={deleteUser}>Удалить</button -->
-<!-- 			> -->
-<!-- 		{/if} -->
-<!-- 	</div> -->
-<!-- {:else} -->
-<!-- 	<h1>Ничего не найдено</h1> -->
-<!-- {/if} -->
