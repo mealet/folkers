@@ -659,28 +659,58 @@ pub async fn persons_id_sign_handler(
     }
 }
 
+/// DELETE `/persons/{id}/sign`
+pub async fn persons_id_unsign_handler(
+    auth_user: middleware::AuthUser,
+    Path(id): Path<String>,
+) -> Result<(), StatusCode> {
+    if auth_user.role < auth::user::UserRole::Admin {
+        return Err(StatusCode::FORBIDDEN);
+    }
+
+    // verifying that record isn't unsigned yet
+    
+    let existing_signature = DATABASE.get_signature(&id).await.or_else(|err| {
+        log::error!("`{} ({})` [DELETE /persons/{{id}}/unsign] got database error: {}", auth_user.username, auth_user.id, err);
+        Err(StatusCode::INTERNAL_SERVER_ERROR)
+    })?;
+
+    if let Some(signature) = existing_signature {
+        let static_admin = std::env::var("FOLKERS_STATIC_ADMIN_USERNAME").unwrap_or_default();
+
+        if auth_user.username != signature.signed_by && auth_user.username != static_admin {
+            return Err(StatusCode::FORBIDDEN);
+        }
+
+        let _ = DATABASE.delete_signature(&id).await.or_else(|err| {
+            log::error!("`{} ({})` [DELETE /persons/{{id}}/unsign] got database error: {}", auth_user.username, auth_user.id, err);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        })?;
+
+        return Ok(());
+    }
+
+    return Err(StatusCode::NOT_FOUND);
+}
+
 
 /// GET `/persons/{id}/verify`
 pub async fn persons_id_verify_handler(
     auth_user: middleware::AuthUser,
     Path(id): Path<String>,
 ) -> Result<Json<bool>, StatusCode> {
-    if auth_user.role < auth::user::UserRole::Admin {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
     let record = DATABASE.get_person(&id).await;
 
     match record {
         Some(record) => {
             let signature_record = DATABASE.get_signature(&id).await.or_else(|err| {
-                log::error!("`{} ({})` [POST /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
+                log::error!("`{} ({})` [GET /persons/{{id}}/verify] got database error: {}", auth_user.username, auth_user.id, err);
                 Err(StatusCode::INTERNAL_SERVER_ERROR)
             })?;
 
             if let Some(signature) = signature_record {
                 let author_record = DATABASE.get_user_by_username(signature.signed_by).await.or_else(|err| {
-                    log::error!("`{} ({})` [POST /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
+                    log::error!("`{} ({})` [GET /persons/{{id}}/verify] got database error: {}", auth_user.username, auth_user.id, err);
                     Err(StatusCode::INTERNAL_SERVER_ERROR)
                 })?;
 

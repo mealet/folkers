@@ -302,6 +302,10 @@ async fn main() -> anyhow::Result<()> {
             "/persons/{id}",
             routing::delete(routers::persons_delete_handler),
         )
+        .route(
+            "/persons/{id}/verify",
+            routing::get(routers::persons_id_verify_handler),
+        )
         .route_layer(axum::middleware::from_fn_with_state(
             app_state.clone(),
             middleware::auth_middleware,
@@ -338,8 +342,8 @@ async fn main() -> anyhow::Result<()> {
             routing::post(routers::persons_id_sign_handler),
         )
         .route(
-            "/persons/{id}/verify",
-            routing::get(routers::persons_id_verify_handler),
+            "/persons/{id}/unsign",
+            routing::delete(routers::persons_id_unsign_handler),
         )
         .route_layer(axum::middleware::from_fn_with_state(
             app_state.clone(),
