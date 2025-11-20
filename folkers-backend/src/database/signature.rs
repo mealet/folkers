@@ -11,11 +11,13 @@ pub struct RecordSignatureRecord {
     pub signed_by: String,
 }
 
+/// Payload for signing record
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SignRecordPayload {
     pub private_key: String
 }
 
+/// Payload for record's signature verification
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerifyRecordPayload {
     pub public_key: String

@@ -155,6 +155,34 @@
 //! > - `500 INTERNAL SERVER ERROR` Database error <br/>
 //! >
 //! > **Returns:** [UserRecord](database::user::UserRecord)
+//! ----
+//! - ### POST `/signature-keygen` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! >
+//! > **Returns:** [String] which contains private key
+//! ----
+//! - ### POST `/persons/{id}/sign` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Payload:** [SignRecordPayload](database::signature::SignRecordPayload) <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` Record not found <br/>
+//! > - `409 CONFLICT` Record already signed <br/>
+//! > - `500 INTERNAL SERVER ERRROR` Database/signature error <br/>
+//! >
+//! > **Returns:** [RecordSignatureRecord](database::signature::RecordSignatureRecord)
+//! ----
+//! - ### GET `/persons/{id}/verify` <br/>
+//! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
+//! > **Payload:** [VerifyRecordPayload](database::signature::VerifyRecordPayload) <br/>
+//! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Not enough permissions <br/>
+//! > - `404 NOT FOUND` Record not found <br/>
+//! > - `500 INTERNAL SERVER ERRROR` Database/signature error <br/>
+//! >
+//! > **Returns:** `bool`
 
 use axum::{extract::DefaultBodyLimit, http::Method, routing, Router};
 use std::sync::LazyLock;
