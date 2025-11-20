@@ -57,7 +57,7 @@
 //! > **Returns:** [String], image hash (required for getter)
 //! ----
 //! - ### GET `/media/{hash}` <br/>
-//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Authorization:** Required, Role: [Watcher](auth::user::UserRole::Watcher)^ <br/>
 //! > **Errors:** <br/>
 //! > - `403 FORBIDDEN` Not enough permissions <br/>
 //! > - `404 NOT FOUND` Media not found <br/>
@@ -66,7 +66,7 @@
 //! > **Returns:** Image
 //! ----
 //! - ### GET `/persons` <br/>
-//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Authorization:** Required, Role: [Watcher](auth::user::UserRole::Watcher)^ <br/>
 //! > **Errors:** <br/>
 //! > - `403 FORBIDDEN` Not enough permissions <br/>
 //! > - `500 INTERNAL SERVER ERROR` Database error <br/>
@@ -84,7 +84,7 @@
 //! > **Returns:** [PersonRecord](database::person::PersonRecord)
 //! ----
 //! - ### GET `/persons/{id}` <br/>
-//! > **Authorization:** Required, Role: [Editor](auth::user::UserRole::Editor)^ <br/>
+//! > **Authorization:** Required, Role: [Watcher](auth::user::UserRole::Watcher)^ <br/>
 //! > **Errors:** <br/>
 //! > - `403 FORBIDDEN` Not enough permissions <br/>
 //! > - `404 NOT FOUND` Record not found <br/>
@@ -109,6 +109,14 @@
 //! > - `500 INTERNAL SERVER ERROR` Database error <br/>
 //! >
 //! > **Returns:** [PersonRecord](database::person::PersonRecord)
+//! ----
+//! - ### GET `/persons/{id}/verify` <br/>
+//! > **Authorization:** Required, Role: [Watcher](auth::user::UserRole::Watcher)^ <br/>
+//! > **Errors:** <br/>
+//! > - `404 NOT FOUND` Record not found <br/>
+//! > - `500 INTERNAL SERVER ERRROR` Database/signature error <br/>
+//! >
+//! > **Returns:** `bool`
 //! ----
 //! - ### GET `/users` <br/>
 //! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
@@ -174,15 +182,14 @@
 //! >
 //! > **Returns:** [RecordSignatureRecord](database::signature::RecordSignatureRecord)
 //! ----
-//! - ### GET `/persons/{id}/verify` <br/>
+//! - ### DELETE `/persons/{id}/unsign` <br/>
 //! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
-//! > **Payload:** [VerifyRecordPayload](database::signature::VerifyRecordPayload) <br/>
 //! > **Errors:** <br/>
 //! > - `403 FORBIDDEN` Not enough permissions <br/>
 //! > - `404 NOT FOUND` Record not found <br/>
 //! > - `500 INTERNAL SERVER ERRROR` Database/signature error <br/>
 //! >
-//! > **Returns:** `bool`
+//! > **Returns:** [RecordSignatureRecord](database::signature::RecordSignatureRecord)
 
 use axum::{extract::DefaultBodyLimit, http::Method, routing, Router};
 use std::sync::LazyLock;
