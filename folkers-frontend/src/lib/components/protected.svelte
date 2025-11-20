@@ -1,20 +1,27 @@
 <script lang="ts">
+	import type { Snippet } from "svelte";
 	import { loggedUser } from "$lib/stores/auth";
 
-	export let requiredUsername: string | null = null;
-	export let requiredRoles: string[] = [];
-	export let adminRoles: string[] = [];
+	const {
+		requiredUsername = null,
+		requiredRoles = [],
+		adminRoles = [],
+		children
+	}: {
+		requiredUsername?: string | null;
+		requiredRoles?: string[];
+		adminRoles?: string[];
+		children: Snippet;
+	} = $props();
 
-	$: user = $loggedUser;
-	$: hasAccess = (() => {
+	let user = $derived($loggedUser);
+	let hasAccess = $derived.by(() => {
 		if (!user) return false;
 
-		// проверка по ID
 		if (requiredUsername && user.username !== requiredUsername && !adminRoles.includes(user.role)) {
 			return false;
 		}
 
-		// проверка по ролям
 		if (
 			requiredRoles.length > 0 &&
 			!requiredRoles.includes(user.role) &&
@@ -24,9 +31,9 @@
 		}
 
 		return true;
-	})();
+	});
 </script>
 
 {#if hasAccess}
-	<slot />
+	{@render children?.()}
 {/if}

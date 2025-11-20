@@ -1,7 +1,8 @@
 import { writable } from "svelte/store";
 import { browser } from "$app/environment";
-import type { User } from "$lib/types/auth";
+
 import { api } from "$lib/api/client";
+import type { User } from "$lib/types/auth";
 
 export interface TokenPayload {
 	exp: number;
@@ -12,9 +13,8 @@ export interface TokenPayload {
 
 export const accessTokenStorage = "access_token";
 
-export const isAuthenticated = writable<boolean>(false);
 export const loggedUser = writable<User | null>(null);
-export const isLoading = writable<boolean>(true);
+export const isAuthenticated = writable<boolean>(false);
 
 const cookieSecure = () => {
 	if (!browser) return "";
@@ -101,7 +101,5 @@ export async function initializeAuth(): Promise<void> {
 		} else {
 			clearAuth();
 		}
-
-		isLoading.set(false);
 	}
 }

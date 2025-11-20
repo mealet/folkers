@@ -162,6 +162,7 @@ use tower_http::cors::{self, CorsLayer};
 
 mod auth;
 mod database;
+mod signatures;
 mod middleware;
 mod routers;
 mod uploads;
@@ -295,6 +296,18 @@ async fn main() -> anyhow::Result<()> {
         .route(
             "/users/{username}",
             routing::patch(routers::users_username_patch_handler),
+        )
+        .route(
+            "/signature-keygen",
+            routing::post(routers::signature_keygen_handler),
+        )
+        .route(
+            "/persons/{id}/sign",
+            routing::post(routers::persons_id_sign_handler),
+        )
+        .route(
+            "/persons/{id}/verify",
+            routing::get(routers::persons_id_verify_handler),
         )
         .route_layer(axum::middleware::from_fn_with_state(
             app_state.clone(),

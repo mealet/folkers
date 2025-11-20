@@ -2,7 +2,7 @@ import { getToken } from "$lib/stores/auth";
 import { ApiClientError } from "./error";
 
 export const API_ENDPOINT =
-	process.env.NODE_ENV === "production" ? "/api" : "http://localhost:3000";
+	process.env.NODE_ENV === "production" ? "/api" : "http://localhost:3001";
 
 class ApiClient {
 	private baseUrl: string;
