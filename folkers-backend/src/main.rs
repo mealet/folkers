@@ -113,10 +113,11 @@
 //! - ### GET `/persons/{id}/verify` <br/>
 //! > **Authorization:** Required, Role: [Watcher](auth::user::UserRole::Watcher)^ <br/>
 //! > **Errors:** <br/>
+//! > - `403 FORBIDDEN` Record verification error <br/>
 //! > - `404 NOT FOUND` Record not found <br/>
 //! > - `500 INTERNAL SERVER ERRROR` Database/signature error <br/>
 //! >
-//! > **Returns:** `bool`
+//! > **Returns:** [RecordSignatureRecord](database::signature::RecordSignatureRecord)
 //! ----
 //! - ### GET `/users` <br/>
 //! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>

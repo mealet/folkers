@@ -698,7 +698,7 @@ pub async fn persons_id_unsign_handler(
 pub async fn persons_id_verify_handler(
     auth_user: middleware::AuthUser,
     Path(id): Path<String>,
-) -> Result<Json<bool>, StatusCode> {
+) -> Result<Json<database::signature::RecordSignatureRecord>, StatusCode> {
     let record = DATABASE.get_person(&id).await;
 
     match record {
@@ -709,25 +709,29 @@ pub async fn persons_id_verify_handler(
             })?;
 
             if let Some(signature) = signature_record {
-                let author_record = DATABASE.get_user_by_username(signature.signed_by).await.or_else(|err| {
+                let author_record = DATABASE.get_user_by_username(signature.signed_by.clone()).await.or_else(|err| {
                     log::error!("`{} ({})` [GET /persons/{{id}}/verify] got database error: {}", auth_user.username, auth_user.id, err);
                     Err(StatusCode::INTERNAL_SERVER_ERROR)
                 })?;
 
                 if let Some(author) = author_record {
                     if author.public_key.is_none() {
-                        return Ok(Json(false));
+                        return Err(StatusCode::FORBIDDEN);
                     }
 
                     let verification = signatures::verify_record(record, signatures::RecordSignature {
-                        record_id: signature.record_id,
-                        base64: signature.base64,
+                        record_id: signature.record_id.clone(),
+                        base64: signature.base64.clone(),
                         pubkey: author.public_key.unwrap()
                     }).or_else(|_| {
-                        return Ok::<bool, StatusCode>(false)
+                        return Err(StatusCode::FORBIDDEN)
                     })?;
+                    
+                    if !verification {
+                        return Err(StatusCode::FORBIDDEN)
+                    }
 
-                    return Ok(Json(verification));
+                    return Ok(Json(signature));
                 }
             }
 
