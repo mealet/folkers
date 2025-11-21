@@ -6,6 +6,7 @@
 
 	import { PersonService } from "$lib/services/person.service";
 	import type { PersonRecord } from "$lib/types/person";
+	import type { RecordSignatureRecord, SignRecordPayload } from "$lib/types/signature";
 
 	import { MediaService } from "$lib/services/media.service";
 
@@ -21,12 +22,14 @@
 		LaughIcon,
 		MapPinHouse,
 		PenIcon,
+		SignatureIcon,
 		TrashIcon,
 		UserPenIcon
 	} from "@lucide/svelte";
 
 	import { Dialog, Portal } from "@skeletonlabs/skeleton-svelte";
 	import { ApiClientError } from "$lib/api/error";
+	import { loggedUser } from "$lib/stores/auth";
 
 	const MEDIA_WIDTH = "256px";
 	const MEDIA_HEIGHT = "256px";
@@ -34,6 +37,13 @@
 	const personId = page.params.id;
 
 	let person: PersonRecord | null = $state(null);
+
+	let signature: RecordSignatureRecord | null = $state(null);
+	let signatureAvailable: boolean = $state(false);
+	let signPayload: SignRecordPayload = $state({
+		private_key: ""
+	});
+
 	let summaryRendered: string = $state("");
 	let pastRendered: string = $state("");
 
@@ -42,6 +52,15 @@
 
 	onMount(async () => {
 		person = await PersonService.get_person(personId || "");
+
+		try {
+			signature = await PersonService.verify_person(personId || "");
+			signatureAvailable = true;
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				signatureAvailable = error.status !== 404;
+			}
+		}
 
 		const summaryCode = person.summary;
 		summaryRendered = await renderMarkdown(summaryCode);
@@ -96,6 +115,27 @@
 			}
 		}
 	}
+
+	async function handleSignSubmit(event: Event) {
+		event.preventDefault();
+
+		try {
+			await PersonService.sign_person(personId || "", signPayload);
+			location.reload();
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error.describe()
+				});
+			} else {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error
+				});
+			}
+		}
+	}
 </script>
 
 <!-- Centering Div -->
@@ -127,6 +167,64 @@
 						>
 							<PenIcon />
 						</a>
+
+						<!-- Sign Section -->
+						<Protected requiredRoles={[ADMIN_ROLE]}>
+							{#if !signatureAvailable && $loggedUser && $loggedUser.public_key}
+								<!-- Apply Signature Dialog -->
+
+								<Dialog>
+									<Dialog.Trigger>
+										<!-- Sign Button -->
+										<button class="btn-icon preset-outlined-surface-500">
+											<SignatureIcon />
+										</button>
+									</Dialog.Trigger>
+
+									<Portal>
+										<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/50" />
+										<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center">
+											<Dialog.Content class="w-xl space-y-2 card bg-surface-100-900 p-4 shadow-xl">
+												<!-- Sign Dialog Content -->
+												<form class="space-y-4" onsubmit={handleSignSubmit}>
+													<div>
+														<h4 class="h4">Подпись записи из базы данных</h4>
+														<p>
+															Данная подпись будет означать, что вы проверили указанную на странице
+															информацию и подтверждаете её достоверность. <br />
+															Сразу после нажатия кнопки "Подписать" на странице появится плашка о подписи
+															с вашей стороны.
+														</p>
+													</div>
+
+													<hr class="hr" />
+
+													<!-- Private Key Field -->
+													<label class="label">
+														<span class="label-text">Ключ для подписи:</span>
+														<input
+															class="input"
+															type="text"
+															placeholder="Введите ваш приватный ключ для подписи..."
+															bind:value={signPayload.private_key}
+															required
+														/>
+													</label>
+
+													<!-- Centering Div -->
+													<div class="flex items-center justify-center">
+														<!-- Submit Button -->
+														<button type="submit" class="btn preset-filled-primary-500"
+															>Подписать</button
+														>
+													</div>
+												</form>
+											</Dialog.Content>
+										</Dialog.Positioner>
+									</Portal>
+								</Dialog>
+							{/if}
+						</Protected>
 
 						<button onclick={handleDelete} class="btn-icon preset-outlined-error-500">
 							<TrashIcon />
