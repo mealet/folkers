@@ -17,6 +17,7 @@
 	import {
 		Building2,
 		Calendar,
+		CircleAlertIcon,
 		CircleX,
 		FrownIcon,
 		LaughIcon,
@@ -141,7 +142,39 @@
 		event.preventDefault();
 
 		try {
+			toaster.error({
+				title: "Вы уверены?",
+				description: "Вы собираетесь удалить подпись",
+				duration: 8000,
+				action: {
+					label: "Удалить",
+					onClick: async () => {
+						await PersonService.unsign_person(personId || "");
+						location.reload();
+					}
+				}
+			});
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error.describe()
+				});
+			} else {
+				toaster.error({
+					title: "Неизвестная ошибка на стороне API",
+					description: error
+				});
+			}
+		}
+	}
+
+	async function handleReSign(event: Event) {
+		event.preventDefault();
+
+		try {
 			await PersonService.unsign_person(personId || "");
+			await PersonService.sign_person(personId || "", signPayload);
 			location.reload();
 		} catch (error) {
 			if (error instanceof ApiClientError) {
@@ -191,64 +224,70 @@
 
 						<!-- Sign Section -->
 						<Protected requiredRoles={[ADMIN_ROLE]}>
-							{#if !signatureAvailable && $loggedUser && $loggedUser.public_key}
+							{#if !signatureAvailable}
 								<!-- Apply Signature Dialog -->
 
-								<Dialog>
-									<Dialog.Trigger>
-										<!-- Sign Button -->
-										<button class="btn-icon preset-outlined-surface-500">
-											<SignatureIcon />
-										</button>
-									</Dialog.Trigger>
+								{#if $loggedUser && $loggedUser.public_key}
+									<Dialog>
+										<Dialog.Trigger>
+											<!-- Sign Button -->
+											<button class="btn-icon preset-outlined-surface-500">
+												<SignatureIcon />
+											</button>
+										</Dialog.Trigger>
 
-									<Portal>
-										<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/50" />
-										<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center">
-											<Dialog.Content class="w-xl space-y-2 card bg-surface-100-900 p-4 shadow-xl">
-												<!-- Sign Dialog Content -->
-												<form class="space-y-4" onsubmit={handleSignSubmit}>
-													<div>
-														<h4 class="h4">Подпись записи из базы данных</h4>
-														<p>
-															Данная подпись будет означать, что вы проверили указанную на странице
-															информацию и подтверждаете её достоверность. <br />
-															Сразу после нажатия кнопки "Подписать" на странице появится плашка о подписи
-															с вашей стороны.
-														</p>
-													</div>
+										<Portal>
+											<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/50" />
+											<Dialog.Positioner
+												class="fixed inset-0 z-50 flex items-center justify-center"
+											>
+												<Dialog.Content
+													class="w-xl space-y-2 card bg-surface-100-900 p-4 shadow-xl"
+												>
+													<!-- Sign Dialog Content -->
+													<form class="space-y-4" onsubmit={handleSignSubmit}>
+														<div>
+															<h4 class="h4">Подпись записи из базы данных</h4>
+															<p>
+																Данная подпись будет означать, что вы проверили указанную на
+																странице информацию и подтверждаете её достоверность. <br />
+																Сразу после нажатия кнопки "Подписать" на странице появится плашка о
+																подписи с вашей стороны.
+															</p>
+														</div>
 
-													<hr class="hr" />
+														<hr class="hr" />
 
-													<!-- Private Key Field -->
-													<label class="label">
-														<span class="label-text">Ключ для подписи:</span>
-														<input
-															class="input"
-															type="text"
-															placeholder="Введите ваш приватный ключ для подписи..."
-															bind:value={signPayload.private_key}
-															required
-														/>
-													</label>
+														<!-- Private Key Field -->
+														<label class="label">
+															<span class="label-text">Ключ для подписи:</span>
+															<input
+																class="input"
+																type="text"
+																placeholder="Введите ваш приватный ключ для подписи..."
+																bind:value={signPayload.private_key}
+																required
+															/>
+														</label>
 
-													<!-- Centering Div -->
-													<div class="flex items-center justify-center">
-														<!-- Submit Button -->
-														<button type="submit" class="btn preset-filled-primary-500"
-															>Подписать</button
-														>
-													</div>
-												</form>
-											</Dialog.Content>
-										</Dialog.Positioner>
-									</Portal>
-								</Dialog>
+														<!-- Centering Div -->
+														<div class="flex items-center justify-center">
+															<!-- Submit Button -->
+															<button type="submit" class="btn preset-filled-primary-500"
+																>Подписать</button
+															>
+														</div>
+													</form>
+												</Dialog.Content>
+											</Dialog.Positioner>
+										</Portal>
+									</Dialog>
+								{/if}
 							{:else}
 								<!-- Unsign Button -->
 								{#if $loggedUser}
 									<Protected
-										requiredRoles={[EDITOR_ROLE]}
+										requiredRoles={[ADMIN_ROLE]}
 										requiredUsername={$loggedUser.username}
 										staticAdminAllowed={true}
 									>
@@ -308,6 +347,113 @@
 				</div>
 
 				<hr class="hr" />
+
+				<!-- Signature Section -->
+				{#if signatureAvailable}
+					{#if signature}
+						<div class="cursor-default rounded-md preset-outlined-success-500 p-2">
+							<h6 class="h6">
+								Запись проверена и подписана <span class="font-mono text-success-500"
+									>{signature.signed_by}</span
+								>
+							</h6>
+							<p>
+								Base64:
+								<button
+									class="text-mono text-md w-md cursor-pointer truncate opacity-55 hover:opacity-100"
+									onclick={() => {
+										if (!signature) return;
+										navigator.clipboard.writeText(signature.base64);
+
+										toaster.info({
+											title: "Текст скопирован",
+											duration: 700
+										});
+									}}>{signature.base64}</button
+								>
+							</p>
+							<p>
+								Публичный ключ:
+								<button
+									class="text-mono text-md cursor-pointer opacity-55 hover:opacity-100"
+									onclick={() => {
+										if (!signature) return;
+										navigator.clipboard.writeText(signature.pubkey);
+
+										toaster.info({
+											title: "Текст скопирован",
+											duration: 700
+										});
+									}}>{signature.pubkey}</button
+								>
+							</p>
+						</div>
+					{:else}
+						<div class="flex justify-between space-y-2 rounded-md preset-outlined-warning-500 p-2">
+							<div class="flex items-center space-x-1">
+								<CircleAlertIcon size={17} />
+								<p>Запись имеет истёкшую подпись</p>
+							</div>
+						</div>
+
+						{#if $loggedUser && $loggedUser.role === ADMIN_ROLE && $loggedUser.public_key}
+							<Dialog>
+								<p>
+									Вы как администратор можете
+
+									<Dialog.Trigger>
+										<button class="text-blue-400 hover:underline">переподписать</button>
+									</Dialog.Trigger>
+									данную запись.
+								</p>
+
+								<Portal>
+									<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50-950/50" />
+									<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center">
+										<Dialog.Content class="w-xl space-y-2 card bg-surface-100-900 p-4 shadow-xl">
+											<!-- Sign Dialog Content -->
+											<form class="space-y-4" onsubmit={handleReSign}>
+												<div>
+													<h4 class="h4">Подпись записи из базы данных</h4>
+													<p>
+														Данная подпись будет означать, что вы проверили указанную на странице
+														информацию и подтверждаете её достоверность. <br />
+														Сразу после нажатия кнопки "Подписать" на странице появится плашка о подписи
+														с вашей стороны.
+													</p>
+												</div>
+
+												<hr class="hr" />
+
+												<!-- Private Key Field -->
+												<label class="label">
+													<span class="label-text">Ключ для подписи:</span>
+													<input
+														class="input"
+														type="text"
+														placeholder="Введите ваш приватный ключ для подписи..."
+														bind:value={signPayload.private_key}
+														required
+													/>
+												</label>
+
+												<!-- Centering Div -->
+												<div class="flex items-center justify-center">
+													<!-- Submit Button -->
+													<button type="submit" class="btn preset-filled-primary-500"
+														>Подписать</button
+													>
+												</div>
+											</form>
+										</Dialog.Content>
+									</Dialog.Positioner>
+								</Portal>
+							</Dialog>
+						{/if}
+					{/if}
+
+					<hr class="hr" />
+				{/if}
 
 				<!-- Summary -->
 				<div>

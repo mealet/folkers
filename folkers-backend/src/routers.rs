@@ -670,7 +670,7 @@ pub async fn persons_id_unsign_handler(
         return Err(StatusCode::FORBIDDEN);
     }
 
-    // verifying that record isn't unsigned yet
+    // verifying that record isn't unsigned yet or signature is invalid
     
     let existing_signature = DATABASE.get_signature(&id).await.or_else(|err| {
         log::error!("`{} ({})` [DELETE /persons/{{id}}/unsign] got database error: {}", auth_user.username, auth_user.id, err);
@@ -681,7 +681,28 @@ pub async fn persons_id_unsign_handler(
         let static_admin = std::env::var("FOLKERS_STATIC_ADMIN_USERNAME").unwrap_or_default();
 
         if auth_user.username != signature.signed_by && auth_user.username != static_admin {
-            return Err(StatusCode::FORBIDDEN);
+            // making some verifications to ensure that signature is still valid
+            
+            let person_record = DATABASE.get_person(&id).await;
+            let author_record = DATABASE.get_user_by_username(signature.signed_by.clone()).await.or_else(|err| {
+                log::error!("`{} ({})` [GET /persons/{{id}}/verify] got database error: {}", auth_user.username, auth_user.id, err);
+                Err(StatusCode::INTERNAL_SERVER_ERROR)
+            })?;
+
+            if let Some(author) = author_record
+            && let Some(record) = person_record
+            && author.public_key.is_some() {
+                let verification = signatures::verify_record(record, signatures::RecordSignature {
+                    record_id: signature.record_id.clone(),
+                    base64: signature.base64.clone(),
+                    pubkey: author.public_key.unwrap()
+                });
+
+                if let Ok(verification) = verification
+                && verification {
+                    return Err(StatusCode::FORBIDDEN);
+                }
+            }
         }
 
         let _ = DATABASE.delete_signature(&id).await.or_else(|err| {

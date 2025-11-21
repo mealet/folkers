@@ -202,7 +202,7 @@
 				</div>
 
 				<!-- Keygen Section -->
-				{#if user.role === ADMIN_ROLE}
+				{#if $loggedUser && $loggedUser.username === user.username && $loggedUser.role === ADMIN_ROLE}
 					<hr class="hr" />
 
 					<div class="space-y-3">
