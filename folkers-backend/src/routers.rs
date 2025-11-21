@@ -643,7 +643,7 @@ pub async fn persons_id_sign_handler(
 
     match record {
         Some(record) => {
-            let signature = signatures::sign_record(record, payload.private_key.clone()).or_else(|err| {
+            let signature = signatures::sign_record(record.clone(), payload.private_key.clone()).or_else(|err| {
                 log::error!("`{} ({})` [POST /persons/{{id}}] got signature error: {}", auth_user.username, auth_user.id, err);
                 Err(StatusCode::INTERNAL_SERVER_ERROR)
             })?;
@@ -652,6 +652,8 @@ pub async fn persons_id_sign_handler(
                 log::error!("`{} ({})` [POST /persons/{{id}}] got database error: {}", auth_user.username, auth_user.id, err);
                 Err(StatusCode::INTERNAL_SERVER_ERROR)               
             })?.unwrap();
+
+            log::info!("`{} ({})` [POST /persons/{{id}}] signed record `{}`", auth_user.username, auth_user.id, record.id.map(|x| x.id.to_string()).unwrap_or_default());
 
             Ok(Json(db_result))
         },
@@ -686,6 +688,8 @@ pub async fn persons_id_unsign_handler(
             log::error!("`{} ({})` [DELETE /persons/{{id}}/unsign] got database error: {}", auth_user.username, auth_user.id, err);
             Err(StatusCode::INTERNAL_SERVER_ERROR)
         })?;
+
+        log::info!("`{} ({})` [DELETE /persons/{{id}}/unsign] deleted signature on record `{}`", auth_user.username, auth_user.id, signature.record_id);
 
         return Ok(());
     }
