@@ -176,10 +176,11 @@
 //! > **Authorization:** Required, Role: [Admin](auth::user::UserRole::Admin)^ <br/>
 //! > **Payload:** [SignRecordPayload](database::signature::SignRecordPayload) <br/>
 //! > **Errors:** <br/>
+//! > - `400 BAD REQUEST` Signature error
 //! > - `403 FORBIDDEN` Not enough permissions <br/>
 //! > - `404 NOT FOUND` Record not found <br/>
 //! > - `409 CONFLICT` Record already signed <br/>
-//! > - `500 INTERNAL SERVER ERRROR` Database/signature error <br/>
+//! > - `500 INTERNAL SERVER ERRROR` Database error <br/>
 //! >
 //! > **Returns:** [RecordSignatureRecord](database::signature::RecordSignatureRecord)
 //! ----

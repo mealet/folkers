@@ -645,7 +645,7 @@ pub async fn persons_id_sign_handler(
         Some(record) => {
             let signature = signatures::sign_record(record.clone(), payload.private_key.clone()).or_else(|err| {
                 log::error!("`{} ({})` [POST /persons/{{id}}] got signature error: {}", auth_user.username, auth_user.id, err);
-                Err(StatusCode::INTERNAL_SERVER_ERROR)
+                Err(StatusCode::BAD_REQUEST)
             })?;
 
             let db_result = DATABASE.add_signature(signature, &auth_user.username).await.or_else(|err| {
