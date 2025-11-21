@@ -58,7 +58,7 @@
 	>
 		<!-- Header -->
 		<header>
-			<img src={bannerSrc} alt="Banner" class="aspect-[21/9]" />
+			<img src={bannerSrc} alt="Banner" />
 		</header>
 
 		<!-- Article -->
