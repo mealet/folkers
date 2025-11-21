@@ -285,10 +285,10 @@
 								{/if}
 							{:else}
 								<!-- Unsign Button -->
-								{#if $loggedUser}
+								{#if $loggedUser && signature}
 									<Protected
 										requiredRoles={[ADMIN_ROLE]}
-										requiredUsername={$loggedUser.username}
+										requiredUsername={signature.signed_by}
 										staticAdminAllowed={true}
 									>
 										<button class="btn-icon preset-outlined-error-500" onclick={handleUnsign}>
