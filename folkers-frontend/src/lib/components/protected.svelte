@@ -6,17 +6,23 @@
 		requiredUsername = null,
 		requiredRoles = [],
 		adminRoles = [],
+		staticAdminAllowed = false,
 		children
 	}: {
 		requiredUsername?: string | null;
 		requiredRoles?: string[];
 		adminRoles?: string[];
+		staticAdminAllowed?: boolean;
 		children: Snippet;
 	} = $props();
 
 	let user = $derived($loggedUser);
 	let hasAccess = $derived.by(() => {
 		if (!user) return false;
+
+		if (staticAdminAllowed && user.created_by === "system") {
+			return true;
+		}
 
 		if (requiredUsername && user.username !== requiredUsername && !adminRoles.includes(user.role)) {
 			return false;

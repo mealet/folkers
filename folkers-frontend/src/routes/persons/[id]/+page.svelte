@@ -126,11 +126,32 @@
 			if (error instanceof ApiClientError) {
 				toaster.error({
 					title: "Ошибка на стороне API",
-					description: error.describe()
+					description: error.status === 400 ? "Неверный ключ для подписи" : error.describe()
 				});
 			} else {
 				toaster.error({
 					title: "Ошибка на стороне API",
+					description: error
+				});
+			}
+		}
+	}
+
+	async function handleUnsign(event: Event) {
+		event.preventDefault();
+
+		try {
+			await PersonService.unsign_person(personId || "");
+			location.reload();
+		} catch (error) {
+			if (error instanceof ApiClientError) {
+				toaster.error({
+					title: "Ошибка на стороне API",
+					description: error.describe()
+				});
+			} else {
+				toaster.error({
+					title: "Неизвестная ошибка на стороне API",
 					description: error
 				});
 			}
@@ -223,6 +244,19 @@
 										</Dialog.Positioner>
 									</Portal>
 								</Dialog>
+							{:else}
+								<!-- Unsign Button -->
+								{#if $loggedUser}
+									<Protected
+										requiredRoles={[EDITOR_ROLE]}
+										requiredUsername={$loggedUser.username}
+										staticAdminAllowed={true}
+									>
+										<button class="btn-icon preset-outlined-error-500" onclick={handleUnsign}>
+											<SignatureIcon />
+										</button>
+									</Protected>
+								{/if}
 							{/if}
 						</Protected>
 

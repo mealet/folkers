@@ -30,4 +30,10 @@ export class PersonService {
 	static async sign_person(id: string, payload: SignRecordPayload): Promise<RecordSignatureRecord> {
 		return await api.post<RecordSignatureRecord>(`/persons/${id}/sign`, payload);
 	}
+
+	static async unsign_person(id: string): Promise<void> {
+		await api.fetch(`/persons/${id}/unsign`, {
+			method: "DELETE"
+		});
+	}
 }
