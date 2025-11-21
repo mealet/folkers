@@ -345,9 +345,13 @@ DEFINE FUNCTION IF NOT EXISTS fn::find_person($query: string) {{
     }
 
     pub async fn delete_signature(&self, record_id: impl AsRef<str>) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
-        self.connection
-            .delete((SIGNATURES, record_id.as_ref()))
-            .await
+        let mut query = self.connection
+            .query(format!("DELETE FROM {SIGNATURES} WHERE record_id = $record_id"))
+            .bind(("record_id", record_id.as_ref().to_string()))
+            .await?;
+
+        let result: Option<RecordSignatureRecord> = query.take(0usize)?;
+        Ok(result)
     }
 
     pub async fn get_signature(&self, record_id: impl AsRef<str>) -> Result<Option<RecordSignatureRecord>, surrealdb::Error> {
