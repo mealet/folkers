@@ -659,7 +659,7 @@ pub async fn persons_id_sign_handler(
     }
 }
 
-/// DELETE `/persons/{id}/sign`
+/// DELETE `/persons/{id}/unsign`
 pub async fn persons_id_unsign_handler(
     auth_user: middleware::AuthUser,
     Path(id): Path<String>,
